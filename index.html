@@ -1,0 +1,2006 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Debie Galleros · Data Pipelines &amp; Dashboards</title>
+<meta name="description" content="Portfolio of Debie Galleros: data analytics, data engineering and data visualization. Pipelines on AWS, Snowflake and BigQuery, and dashboards in Looker Studio and Power BI.">
+<meta property="og:title" content="Debie Galleros — Data Pipelines &amp; Dashboards">
+<meta property="og:description" content="Portfolio of Debie Galleros: data analytics, data engineering and data visualization. Pipelines on AWS, Snowflake and BigQuery, and dashboards in Looker Studio and Power BI.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://debiegalleros.github.io/pipelines-and-dashboards/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231C58B8'/%3E%3Crect x='7' y='17' width='4' height='8' fill='white'/%3E%3Crect x='14' y='11' width='4' height='14' fill='white'/%3E%3Crect x='21' y='7' width='4' height='18' fill='white'/%3E%3C/svg%3E">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column that opens up on wide screens; data moves left to right, source → warehouse → dashboard, and so does the page. */
+:root {
+  --bg: #F3F5F7;
+  --surface: #FFFFFF;
+  --ink: #15202B;
+  --muted: #5A6673;
+  --rule: #D8DEE5;
+  --accent: #1C58B8;
+  --other: #A9B4C0;
+  --track: #E6EBF0;
+  --code-bg: #EDF1F5;
+  /* chart series, validated for colour-blind separation on each surface */
+  --s1: #1C58B8; --s2: #EB6834; --s3: #1BAF7A; --s4: #6250D6;
+  --good: #137A3F; --bad: #B42318; --head-ink: #FFFFFF;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F151B; --surface: #161F28; --ink: #E5EAF0; --muted: #9BA7B3; --rule: #27323D;
+    --accent: #7EA7EE; --other: #5A6876; --track: #222C36; --code-bg: #111920;
+    --s1: #5B8FE6; --s2: #D95926; --s3: #199E70; --s4: #9085E9;
+    --good: #4CC38A; --bad: #F28B82; --head-ink: #0F151B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F151B; --surface: #161F28; --ink: #E5EAF0; --muted: #9BA7B3; --rule: #27323D;
+  --accent: #7EA7EE; --other: #5A6876; --track: #222C36; --code-bg: #111920;
+  --s1: #5B8FE6; --s2: #D95926; --s3: #199E70; --s4: #9085E9;
+  --good: #4CC38A; --bad: #F28B82; --head-ink: #0F151B;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 56px 72px;
+  display: grid;
+  gap: 64px;
+}
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.label {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Header */
+header { display: grid; gap: 20px; }
+header h1 { font-size: clamp(44px, 8vw, 72px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+.role { font-family: var(--display); font-weight: 500; font-size: clamp(20px, 3vw, 26px); line-height: 1.25; max-width: 52ch; text-wrap: balance; }
+.lede { max-width: 64ch; }
+.lede + .lede { color: var(--muted); }
+.links { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.links a { color: var(--accent); font-weight: 600; text-decoration: none; border-bottom: 1px solid currentColor; }
+.links a:hover { border-bottom-width: 2px; }
+.links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+.print-only { display: none; }
+
+/* Timeline: one dot per role on a horizontal line */
+.timeline-wrap { display: grid; gap: 14px; padding: 18px 20px 20px; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+.timeline { list-style: none; margin: 0; padding: 0; position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.timeline::before { content: ""; position: absolute; top: 5px; left: 0; right: 0; height: 2px; background: var(--rule); }
+.timeline li { position: relative; padding-top: 22px; display: grid; gap: 3px; align-content: start; min-width: 0; }
+.timeline li::before { content: ""; position: absolute; top: 0; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--surface); }
+.timeline .when { font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+.timeline b { font-size: 15px; font-weight: 600; line-height: 1.3; }
+.timeline .org { font-size: 14px; font-weight: 600; color: var(--accent); }
+.timeline li > span:last-child { font-size: 14px; line-height: 1.4; color: var(--muted); }
+
+section { display: grid; gap: 24px; }
+section > h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+.intro { max-width: 64ch; color: var(--muted); }
+
+/* Pipeline: four stages joined by arrows; stacked on phones, side by side from tablet width */
+.pipeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 30px; }
+.stage { position: relative; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 18px 20px; display: grid; gap: 10px; align-content: start; min-width: 0; break-inside: avoid; }
+.stage h3 { font-size: 18px; font-weight: 700; line-height: 1.25; }
+.stage:not(:last-child)::after { content: ""; position: absolute; left: 50%; bottom: -21px; transform: translateX(-50%);
+  border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 10px solid var(--muted); }
+.checks { font-size: 15px; color: var(--muted); padding: 12px 16px; border: 1px dashed var(--rule); border-radius: 6px; }
+.checks b { color: var(--ink); font-weight: 600; }
+/* Dashboard colour themes: each recreation has its own header and chart colours, validated for colour-blind separation in light and dark */
+.t-orange { --head: #C2410C; --s1: #C2410C; --s2: #1C58B8; --s3: #1BAF7A; --s4: #6250D6; }
+.t-amber { --head: #A16207; --s1: #A16207; --s2: #1C58B8; --s3: #1BAF7A; --s4: #6250D6; }
+.t-blue { --head: #1C58B8; --s1: #1C58B8; --s2: #EB6834; --s3: #1BAF7A; --s4: #6250D6; }
+.t-green { --head: #15803D; --s1: #15803D; --s2: #6250D6; --s3: #EB6834; --s4: #2A78D6; }
+.t-violet { --head: #6D28D9; --s1: #6D28D9; --s2: #EB6834; --s3: #1BAF7A; --s4: #EDA100; }
+.t-plum { --head: #A21CAF; --s1: #A21CAF; --s2: #EDA100; --s3: #2A78D6; --s4: #1BAF7A; }
+.t-petrol { --head: #0B7FA0; --s1: #0B7FA0; --s2: #EB6834; --s3: #6250D6; --s4: #EDA100; }
+.t-red { --head: #B91C1C; --s1: #B91C1C; --s2: #2A78D6; --s3: #EDA100; --s4: #1BAF7A; }
+.t-pink { --head: #BE185D; --s1: #BE185D; --s2: #2A78D6; --s3: #1BAF7A; --s4: #EDA100; }
+.t-indigo { --head: #4338CA; --s1: #4338CA; --s2: #EB6834; --s3: #1BAF7A; --s4: #EDA100; }
+.t-olive { --head: #4D7C0F; --s1: #4D7C0F; --s2: #6250D6; --s3: #EB6834; --s4: #2A78D6; }
+.t-jade { --head: #08856B; --s1: #08856B; --s2: #6250D6; --s3: #EB6834; --s4: #2A78D6; }
+.t-rust { --head: #9A3412; --s1: #9A3412; --s2: #2A78D6; --s3: #1BAF7A; --s4: #6250D6; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .t-orange { --head: #D95926; --s1: #D95926; --s2: #5B8FE6; --s3: #199E70; --s4: #9085E9; }
+  :root:not([data-theme="light"]) .t-amber { --head: #C98500; --s1: #C98500; --s2: #5B8FE6; --s3: #199E70; --s4: #9085E9; }
+  :root:not([data-theme="light"]) .t-blue { --head: #5B8FE6; --s1: #5B8FE6; --s2: #D95926; --s3: #199E70; --s4: #9085E9; }
+  :root:not([data-theme="light"]) .t-green { --head: #2F9E5A; --s1: #2F9E5A; --s2: #9085E9; --s3: #D95926; --s4: #5B8FE6; }
+  :root:not([data-theme="light"]) .t-violet { --head: #9B7BF0; --s1: #9B7BF0; --s2: #D95926; --s3: #199E70; --s4: #C98500; }
+  :root:not([data-theme="light"]) .t-plum { --head: #C04FD0; --s1: #C04FD0; --s2: #C98500; --s3: #5B8FE6; --s4: #199E70; }
+  :root:not([data-theme="light"]) .t-petrol { --head: #2A98B5; --s1: #2A98B5; --s2: #D95926; --s3: #9085E9; --s4: #C98500; }
+  :root:not([data-theme="light"]) .t-red { --head: #E66767; --s1: #E66767; --s2: #5B8FE6; --s3: #C98500; --s4: #199E70; }
+  :root:not([data-theme="light"]) .t-pink { --head: #D55181; --s1: #D55181; --s2: #5B8FE6; --s3: #199E70; --s4: #C98500; }
+  :root:not([data-theme="light"]) .t-indigo { --head: #7B7FEA; --s1: #7B7FEA; --s2: #D95926; --s3: #199E70; --s4: #C98500; }
+  :root:not([data-theme="light"]) .t-olive { --head: #6E9E2E; --s1: #6E9E2E; --s2: #9085E9; --s3: #D95926; --s4: #5B8FE6; }
+  :root:not([data-theme="light"]) .t-jade { --head: #26A57F; --s1: #26A57F; --s2: #9085E9; --s3: #D95926; --s4: #5B8FE6; }
+  :root:not([data-theme="light"]) .t-rust { --head: #D06A2A; --s1: #D06A2A; --s2: #5B8FE6; --s3: #199E70; --s4: #9085E9; }
+}
+:root[data-theme="dark"] .t-orange { --head: #D95926; --s1: #D95926; --s2: #5B8FE6; --s3: #199E70; --s4: #9085E9; }
+:root[data-theme="dark"] .t-amber { --head: #C98500; --s1: #C98500; --s2: #5B8FE6; --s3: #199E70; --s4: #9085E9; }
+:root[data-theme="dark"] .t-blue { --head: #5B8FE6; --s1: #5B8FE6; --s2: #D95926; --s3: #199E70; --s4: #9085E9; }
+:root[data-theme="dark"] .t-green { --head: #2F9E5A; --s1: #2F9E5A; --s2: #9085E9; --s3: #D95926; --s4: #5B8FE6; }
+:root[data-theme="dark"] .t-violet { --head: #9B7BF0; --s1: #9B7BF0; --s2: #D95926; --s3: #199E70; --s4: #C98500; }
+:root[data-theme="dark"] .t-plum { --head: #C04FD0; --s1: #C04FD0; --s2: #C98500; --s3: #5B8FE6; --s4: #199E70; }
+:root[data-theme="dark"] .t-petrol { --head: #2A98B5; --s1: #2A98B5; --s2: #D95926; --s3: #9085E9; --s4: #C98500; }
+:root[data-theme="dark"] .t-red { --head: #E66767; --s1: #E66767; --s2: #5B8FE6; --s3: #C98500; --s4: #199E70; }
+:root[data-theme="dark"] .t-pink { --head: #D55181; --s1: #D55181; --s2: #5B8FE6; --s3: #199E70; --s4: #C98500; }
+:root[data-theme="dark"] .t-indigo { --head: #7B7FEA; --s1: #7B7FEA; --s2: #D95926; --s3: #199E70; --s4: #C98500; }
+:root[data-theme="dark"] .t-olive { --head: #6E9E2E; --s1: #6E9E2E; --s2: #9085E9; --s3: #D95926; --s4: #5B8FE6; }
+:root[data-theme="dark"] .t-jade { --head: #26A57F; --s1: #26A57F; --s2: #9085E9; --s3: #D95926; --s4: #5B8FE6; }
+:root[data-theme="dark"] .t-rust { --head: #D06A2A; --s1: #D06A2A; --s2: #5B8FE6; --s3: #199E70; --s4: #9085E9; }
+.chip { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--head); color: var(--head-ink);
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; vertical-align: 1px; white-space: nowrap; }
+.chip:hover { filter: brightness(1.12); }
+.chip:focus-visible { outline: 2px solid var(--head); outline-offset: 2px; }
+.dash-groups { display: grid; gap: 44px; counter-reset: dash; }
+.dash-group { display: grid; gap: 16px; }
+.group-title { font-size: 21px; font-weight: 700; }
+.group-title span { color: var(--muted); font-weight: 500; }
+.trio { display: grid; gap: 18px; min-width: 0; }
+@container (min-width: 520px) { .trio { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (min-width: 600px) { .trio { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.funnel { display: grid; grid-template-columns: minmax(0, 32%) minmax(0, 1fr) auto auto; gap: 7px 10px; align-items: center; font-size: 12.5px; }
+.funnel .ft { height: 14px; }
+.funnel .ft i { display: block; height: 100%; background: var(--s1); border-radius: 0 4px 4px 0; }
+.funnel .fv, .funnel .fc { font-family: var(--mono); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
+.funnel .fc { color: var(--muted); min-width: 6ch; }
+.dt.wrap-th th { white-space: normal; }
+.dt.wrap-th td:first-child { white-space: normal; }
+.dt.heat td:not(:first-child) { background: color-mix(in srgb, var(--s1) var(--a, 0%), transparent); }
+.insights, .setup { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; }
+.setup li::marker { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+.filters { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 12px; }
+.filters .f-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-right: 3px; }
+.filters .f { border: 1px solid var(--rule); border-radius: 4px; padding: 1px 8px; color: var(--muted); background: var(--surface); white-space: nowrap; }
+.filters .f::after { content: " ▾"; font-size: 9px; }
+.dsec { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--head, var(--accent));
+  padding-bottom: 4px; border-bottom: 2px solid var(--head, var(--accent)); margin-top: 4px; }
+.kpis.k5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.kpis.k6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+@container (max-width: 640px) { .kpis.k5, .kpis.k6 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container (max-width: 400px) { .kpis.k5, .kpis.k6 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.cell .ka { font-size: 11px; line-height: 1.25; color: var(--muted); min-height: 2.5em; }
+.cell .sub { font-family: var(--mono); font-size: 10.5px; line-height: 1.35; color: var(--muted); }
+.stack { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.deck { display: grid; gap: 20px; }
+.slide { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; min-width: 0; min-height: 300px; break-inside: avoid; }
+.slide-head { padding: 10px 16px 8px; border-bottom: 3px solid var(--head); font-family: var(--display); font-weight: 700; font-size: 16px; line-height: 1.25; }
+.slide-body { padding: 12px 16px; display: grid; gap: 10px; align-content: start; min-width: 0; container-type: inline-size; font-size: 13.5px; }
+.slide-foot { display: flex; justify-content: space-between; gap: 8px; padding: 6px 16px; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.slide-title { background: var(--head); color: var(--head-ink); grid-template-rows: 1fr auto; }
+.slide-title .slide-body { align-content: center; gap: 10px; padding: 24px; }
+.slide-title .label { color: inherit; opacity: 0.85; }
+.slide-title h3 { font-size: 24px; line-height: 1.15; }
+.slide-title .slide-foot { color: inherit; border-top-color: currentColor; opacity: 0.85; }
+.big-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.big-points li { display: grid; grid-template-columns: 4.2em minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.big-points b { font-family: var(--display); font-size: 24px; color: var(--head); line-height: 1; }
+.prompt { margin: 0; font-size: 11px; line-height: 1.45; white-space: pre-wrap; }
+/* Numbering: case studies 1–9, dashboards A–L, code examples 1–4 */
+.cases { counter-reset: case; }
+.case { counter-increment: case; }
+.snippets { counter-reset: snip; }
+.snippet { counter-increment: snip; }
+.dashes .dash { counter-increment: dash; }
+.case h3::before, .snippet h3::before, .dashes .dash-head h3::before {
+  display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; margin-right: 0.45em; vertical-align: 0.1em;
+  border: 1.5px solid currentColor; border-radius: 50%; font-family: var(--mono); font-size: 0.74em; font-weight: 500; line-height: 1; }
+.case h3::before { content: counter(case); color: var(--accent); }
+.snippet h3::before { content: counter(snip); color: var(--accent); }
+.dashes .dash-head h3::before { content: counter(dash, upper-alpha); }
+.plan-grid { display: grid; gap: 18px; min-width: 0; }
+@container (min-width: 760px) { .plan-grid { grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 28px; } }
+.dt.plan th, .dt.plan td { text-align: left; white-space: normal; vertical-align: top; }
+.dt.plan td:first-child { white-space: nowrap; }
+.dt code, .foot code { font-family: var(--mono); font-size: 0.92em; font-style: normal; }
+@media (min-width: 760px) {
+  .pipeline { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 26px; }
+  .pipeline.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stage:not(:last-child)::after { left: auto; right: -19px; top: 50%; bottom: auto; transform: translateY(-50%);
+    border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 10px solid var(--muted); border-right: 0; }
+}
+
+/* Cases */
+.cases { display: grid; gap: 20px; }
+.case {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  break-inside: avoid;
+}
+.case-head { display: grid; gap: 6px; }
+.case h3 { font-size: 22px; font-weight: 700; line-height: 1.2; }
+.case dl { margin: 0; display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 10px 20px; }
+.case dt { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
+.case dd { margin: 0; min-width: 0; }
+.case dd.result { font-weight: 600; }
+.case dd.result span:not(.todo) { font-weight: 400; color: var(--muted); }
+.todo { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 400; line-height: 1.4; letter-spacing: 0.02em;
+  color: var(--bad); border: 1px dashed currentColor; border-radius: 4px; padding: 1px 6px; }
+
+/* Dashboard showcase: each recreation sits in a frame with a filled title bar, like a report page */
+.dashes { display: grid; gap: 40px; margin-top: 8px; }
+.dash { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; display: grid; align-content: start; min-width: 0; break-inside: avoid; }
+.dash-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 11px 16px; background: var(--head, var(--accent)); color: var(--head-ink); }
+.dash-head h3 { font-size: 17px; font-weight: 700; margin-right: auto; }
+.dash-meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; }
+.sample { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; }
+.dash-body { padding: 16px; display: grid; gap: 18px; container-type: inline-size; min-width: 0; }
+.dash-for { font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+.dash-for b { font-family: var(--mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-right: 6px; }
+.dash-for b + b, .dash-for b:not(:first-child) { margin-left: 14px; }
+.dash-from { font-size: 13px; color: var(--muted); margin-top: -12px; }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.kpis.k4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@container (max-width: 460px) {
+  .kpis.k4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpis .k-value { font-size: 18px; }
+  .dt { font-size: 11.5px; }
+  .dt th, .dt td { padding: 5px 4px; }
+  .dt th { font-size: 9px; letter-spacing: 0.02em; white-space: normal; }
+  .inbar i { display: none; }
+}
+.kpi { border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; display: grid; gap: 1px; align-content: start; min-width: 0; }
+.k-label { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+.k-value { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.15; }
+.delta { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.delta.good { color: var(--good); }
+.delta.bad { color: var(--bad); }
+.foot { font-size: 12px; color: var(--muted); font-style: italic; }
+.duo { display: grid; gap: 18px; min-width: 0; }
+@container (min-width: 520px) { .duo { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Journey stage board */
+.phases { display: grid; gap: 8px; }
+@container (min-width: 520px) { .phases { grid-template-columns: 3fr 2fr 1.15fr; } }
+.phase { border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.phase-head { background: var(--track); font-size: 12.5px; font-weight: 600; padding: 4px 8px; text-align: center; }
+.cells { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.cell { padding: 8px 6px; display: grid; gap: 1px; align-content: start; text-align: center; min-width: 0; }
+.cell + .cell { border-left: 1px solid var(--rule); }
+.cell .k-value { font-size: 19px; }
+
+/* Charts: HTML axes and labels at fixed sizes; SVG only draws the lines, stretched to the plot */
+.chart { display: grid; gap: 8px; min-width: 0; align-content: start; }
+.chart-title { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.legend { display: flex; flex-wrap: wrap; gap: 3px 14px; font-size: 12px; color: var(--muted); }
+.legend b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+.c0 { --c: var(--other); } .c1 { --c: var(--s1); } .c2 { --c: var(--s2); } .c3 { --c: var(--s3); } .c4 { --c: var(--s4); }
+.plotwrap { display: grid; grid-template-columns: 34px minmax(0, 1fr); }
+.yaxis { position: relative; }
+.yaxis span, .xaxis span { position: absolute; font-family: var(--mono); font-size: 10.5px; line-height: 1; color: var(--muted); white-space: nowrap; }
+.yaxis span { right: 7px; transform: translateY(50%); }
+.plot { position: relative; border-bottom: 1px solid var(--other); touch-action: pan-y; }
+.gl { position: absolute; left: 0; right: 0; height: 1px; background: var(--track); }
+.plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ln { fill: none; stroke: var(--c); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.ar { fill: var(--c); fill-opacity: 0.12; stroke: none; }
+.dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--c); transform: translate(-50%, 50%); box-shadow: 0 0 0 2px var(--surface); }
+.xhair { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--muted); pointer-events: none; }
+.xaxis { position: relative; height: 15px; margin-left: 34px; margin-top: 5px; }
+.xaxis span { transform: translateX(-50%); }
+.xaxis span.first { transform: none; }
+.xaxis span.last { transform: translateX(-100%); }
+.cols { position: absolute; inset: 0; display: grid; grid-template-rows: 100%; align-items: end; justify-items: center; }
+.col { width: min(24px, 72%); display: flex; flex-direction: column-reverse; gap: 2px; }
+.col.on { filter: brightness(1.12); }
+.seg { display: block; flex: 0 1 0; min-height: 0; background: var(--c); }
+.col > .seg:last-child { border-radius: 4px 4px 0 0; }
+.hb { display: grid; grid-template-columns: minmax(0, 46%) minmax(0, 1fr) auto; gap: 7px 10px; align-items: center; font-size: 12.5px; }
+.hb-l { line-height: 1.25; overflow-wrap: anywhere; }
+.hb-t { height: 10px; }
+.hb-t i { display: block; height: 100%; background: var(--c); border-radius: 0 4px 4px 0; }
+.hb-v { font-family: var(--mono); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
+.segbar { display: flex; gap: 2px; height: 12px; }
+.segbar .seg { flex-basis: 0; }
+.segbar .seg:first-child { border-radius: 4px 0 0 4px; }
+.segbar .seg:last-child { border-radius: 0 4px 4px 0; }
+.tbl-wrap { overflow-x: auto; min-width: 0; }
+.dt { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.dt th, .dt td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.dt th:first-child, .dt td:first-child { text-align: left; padding-left: 0; }
+.dt th { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); vertical-align: bottom; }
+.dt td.barcell { width: 34%; }
+.inbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.inbar i { display: block; height: 8px; background: var(--s1); border-radius: 0 4px 4px 0; }
+.dt .delta { font-size: 10.5px; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; }
+.steps li { padding: 2px 10px; border: 1px solid var(--rule); border-radius: 999px; color: var(--muted); }
+.steps li.on { background: var(--head, var(--accent)); border-color: var(--head, var(--accent)); color: var(--head-ink); font-weight: 600; }
+.tip { position: fixed; z-index: 20; pointer-events: none; display: grid; gap: 2px; min-width: 120px; max-width: 240px;
+  background: var(--ink); color: var(--bg); font-size: 12px; line-height: 1.35; padding: 7px 9px; border-radius: 4px; }
+.tip .tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+.tip .tr .sw { margin: 0; box-shadow: 0 0 0 1px var(--bg); }
+.tip .tr b { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* How I work: numbered steps joined by a line; vertical by default, horizontal with arrows on wide screens */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.flow li { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 14px; row-gap: 2px; align-content: start; break-inside: avoid; }
+.flow .step { grid-row: 1 / span 2; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--bg);
+  display: grid; place-items: center; font-family: var(--mono); font-size: 13px; font-weight: 500; position: relative; z-index: 1; }
+.flow b { font-weight: 600; font-size: 16px; line-height: 1.35; }
+.flow .txt { grid-column: 2; color: var(--muted); font-size: 15px; }
+.flow li:not(:last-child)::after { content: ""; position: absolute; left: 13px; top: 30px; bottom: -14px; width: 2px; background: var(--rule); }
+
+/* Tools and skills: one row of columns with tags */
+.skillset { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px; }
+.skill-col { display: grid; gap: 10px; align-content: start; padding-top: 10px; border-top: 3px solid var(--accent); min-width: 0; }
+.tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.tags li { background: var(--track); border: 1px solid var(--rule); border-radius: 4px; padding: 2px 9px; font-size: 14px; line-height: 1.45; color: var(--ink); }
+
+/* Code */
+.snippets { display: grid; gap: 28px; }
+.snippet {
+  display: grid; gap: 12px; min-width: 0; align-content: start;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 24px;
+  break-inside: avoid;
+}
+.snippet h3 { font-size: 20px; font-weight: 700; }
+.snippet > p { max-width: 68ch; }
+pre {
+  margin: 0; overflow-x: auto; background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 14px 16px; font-family: var(--mono); font-size: 13.5px; line-height: 1.6; color: var(--ink);
+}
+pre .c { color: var(--muted); }
+
+footer { border-top: 1px solid var(--rule); padding-top: 20px; font-size: 14px; color: var(--muted); max-width: 70ch; }
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .page { padding-block: 32px 48px; gap: 48px; }
+  .case, .snippet { padding: 18px; }
+  .timeline { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .timeline::before { top: 0; bottom: 0; left: 5px; right: auto; width: 2px; height: auto; }
+  .timeline li { padding-top: 0; padding-left: 26px; }
+  .timeline li::before { top: 3px; }
+  .case dl { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .case dd { margin-bottom: 10px; }
+  .dash-body { padding: 12px; }
+  pre { font-size: 12.5px; padding: 12px; }
+}
+
+/* Wide screens (landscape laptops and monitors): smaller type, use the full width, put sections side by side */
+@media screen and (min-width: 1100px) {
+  body { font-size: 14px; line-height: 1.5; }
+  .page { max-width: 1560px; gap: 48px; padding-block: 36px 56px;
+    padding-left: max(40px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px)); }
+  .label { font-size: 10.5px; }
+
+  header { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 48px; row-gap: 12px; }
+  header > * { grid-column: 1 / -1; }
+  header h1 { font-size: 46px; }
+  .role { font-size: 18px; max-width: none; }
+  header > .lede { grid-column: 1; grid-row: 5; max-width: none; }
+  header > .lede ~ .lede { grid-column: 2; grid-row: 5; }
+  header > .timeline-wrap { grid-row: 6; }
+  .timeline b { font-size: 13px; }
+  .timeline .org { font-size: 12.5px; }
+  .timeline li > span:last-child { font-size: 12px; }
+
+  section { gap: 18px; }
+  section > h2 { font-size: 20px; }
+  .intro { font-size: 12.5px; max-width: 120ch; }
+
+  .stage { padding: 14px 16px; gap: 8px; }
+  .stage h3 { font-size: 14.5px; }
+  .checks { font-size: 12.5px; padding: 9px 14px; }
+
+  .cases { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .case { padding: 18px 20px; gap: 12px; }
+  .case h3 { font-size: 16px; }
+  .case dl { grid-template-columns: 68px minmax(0, 1fr); gap: 6px 12px; font-size: 13px; }
+  .case dt { font-size: 10px; }
+  .todo { font-size: 10.5px; }
+
+  .dashes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px 36px; }
+  .dashes > .dash:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .group-title { font-size: 17px; }
+  .dash-groups { gap: 52px; }
+  .dash-head h3 { font-size: 15px; }
+
+  .flow { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0 22px; }
+  .flow li { grid-template-columns: minmax(0, 1fr); row-gap: 6px; }
+  .flow .step { grid-row: auto; }
+  .flow .txt { grid-column: 1; font-size: 12.5px; }
+  .flow b { font-size: 13.5px; }
+  .flow li:not(:last-child)::after { left: 36px; right: -16px; top: 13px; bottom: auto; width: auto; height: 2px; }
+  .flow li:not(:last-child)::before { content: ""; position: absolute; top: 8px; right: -20px; width: 0; height: 0;
+    border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 9px solid var(--muted); }
+
+  .snippets { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .deck { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .slide { min-height: 330px; }
+  .slide-head { font-size: 14px; }
+  .slide-body { font-size: 12.5px; }
+  .slide-title h3 { font-size: 20px; }
+  .snippet { padding: 18px 20px; gap: 10px; }
+  .snippet h3 { font-size: 15px; }
+  .snippet > p { font-size: 13px; max-width: none; }
+  pre { font-size: 11.5px; line-height: 1.5; padding: 12px 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+  .skillset { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px; }
+  .tags li { font-size: 12.5px; }
+  footer { font-size: 12px; max-width: none; }
+}
+
+@page { size: A4; margin: 14mm 14mm 16mm; }
+@media print {
+  :root {
+    --bg: #FFFFFF; --surface: #FFFFFF; --ink: #15202B; --muted: #55616E; --rule: #D8DEE5;
+    --accent: #1C58B8; --other: #A9B4C0; --track: #EDF1F5; --code-bg: #F1F4F7;
+    --s1: #1C58B8; --s2: #EB6834; --s3: #1BAF7A; --s4: #6250D6; --good: #137A3F; --bad: #B42318; --head-ink: #FFFFFF;
+    color-scheme: light;
+  }
+  body { font-size: 10pt; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { padding: 0; max-width: none; gap: 26px; }
+  header { gap: 12px; }
+  header h1 { font-size: 44px; }
+  .role { font-size: 17px; max-width: none; }
+  .lede { max-width: 92ch; }
+  .links .print-only { display: inline; }
+  .screen-only { display: none; }
+  section { gap: 14px; }
+  section > h2 { font-size: 20px; break-after: avoid; }
+  .intro { font-size: 9.5pt; max-width: none; break-after: avoid; }
+  .timeline-wrap { padding: 12px 14px; gap: 10px; break-inside: avoid; }
+  .timeline { gap: 16px; }
+  .timeline .when { font-size: 8pt; }
+  .timeline b { font-size: 10pt; }
+  .timeline .org { font-size: 9pt; }
+  .timeline li > span:last-child { font-size: 8.5pt; }
+  .pipeline { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 22px; }
+  .pipeline.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stage { padding: 10px 12px; gap: 6px; }
+  .stage h3 { font-size: 11pt; }
+  .stage:not(:last-child)::after { left: auto; right: -17px; top: 50%; bottom: auto; transform: translateY(-50%);
+    border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 9px solid var(--muted); border-right: 0; }
+  .checks { font-size: 9pt; padding: 7px 12px; break-inside: avoid; }
+  .tags { gap: 3px; }
+  .tags li { font-size: 8pt; padding: 1px 5px; border-radius: 3px; }
+  .cases { gap: 12px; }
+  .case { padding: 10px 14px; gap: 6px; }
+  .case h3 { font-size: 13pt; }
+  .case dl { gap: 4px 14px; font-size: 9.5pt; line-height: 1.38; }
+  .case dt { font-size: 7.5pt; padding-top: 2px; }
+  .todo { font-size: 7.5pt; }
+  .dashes { gap: 22px; margin-top: 0; }
+  .dash-groups, .dash-group, .dashes { display: block; }
+  .dash-group + .dash-group { margin-top: 22px; }
+  .group-title { margin-bottom: 10px; }
+  .dashes > .dash + .dash { margin-top: 22px; }
+  .trio { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .deck { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .slide { min-height: 0; }
+  .slide-head { font-size: 11pt; padding: 6px 10px; }
+  .slide-body { font-size: 8.5pt; padding: 8px 10px; gap: 6px; }
+  .slide-foot { padding: 4px 10px; font-size: 7pt; }
+  .slide-title h3 { font-size: 15pt; }
+  .big-points b { font-size: 15pt; }
+  .prompt { font-size: 7pt; }
+  .filters { font-size: 7.5pt; }
+  .dsec { font-size: 7.5pt; }
+  .cell .ka, .cell .sub { font-size: 7pt; }
+  .group-title { font-size: 13pt; break-after: avoid; }
+  .funnel, .insights, .setup { font-size: 8.5pt; }
+  .chip { font-size: 7pt; }
+  .dash-head { padding: 6px 12px; }
+  .dash-head h3 { font-size: 12pt; }
+  .dash-body { padding: 7px 12px 9px; gap: 4px; }
+  .dash .chart { gap: 5px; }
+  .dash-head { padding: 5px 12px; }
+  .dash-from { display: none; }
+  .dash-for { font-size: 9pt; }
+  .dash-for b { font-size: 7pt; }
+  .kpi { padding: 3px 7px; }
+  .dsec { margin-top: 1px; padding-bottom: 2px; }
+  .dash .chart { gap: 3px; }
+  .legend { gap: 1px 10px; }
+  .plot { height: 46px !important; }
+  .k-value { font-size: 13pt; }
+  .dt { line-height: 1.25; }
+  .dashes + * , .dash-body > * { break-inside: avoid; }
+  .phase-head { padding: 2px 6px; }
+  .cell { padding: 4px; }
+  .hb { gap: 1px 10px; line-height: 1.2; }
+  .dt th, .dt td { padding: 1px 6px; }
+  .foot { font-size: 8pt; }
+  .dash-from { font-size: 8.5pt; }
+  .k-label { font-size: 8.5pt; }
+  .k-value { font-size: 14pt; }
+  .cell .k-value { font-size: 12pt; }
+  .chart-title { font-size: 9.5pt; }
+  .legend, .hb, .dt { font-size: 8.5pt; }
+  .steps { font-size: 8pt; }
+  .tip { display: none !important; }
+  .flow { gap: 9px; }
+  .flow li { grid-template-columns: 18px minmax(0, 1fr); column-gap: 10px; }
+  .flow .step { width: 18px; height: 18px; font-size: 8.5pt; }
+  .flow b { font-size: 10.5pt; }
+  .flow .txt { font-size: 9.5pt; }
+  .flow li:not(:last-child)::after { left: 8px; top: 20px; bottom: -9px; }
+  .snippets { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .snippet { padding: 10px 12px; gap: 5px; }
+  .snippet h3 { font-size: 11.5pt; }
+  .snippet > p { font-size: 9pt; }
+  pre { white-space: pre-wrap; font-size: 7pt; line-height: 1.3; padding: 7px 9px; }
+  .skillset { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+  .skill-col { gap: 6px; padding-top: 6px; border-top-width: 2px; }
+  .keep { break-inside: avoid; }
+  .page-break { break-before: page; }
+  footer { font-size: 9pt; padding-top: 12px; break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <p class="label">Data Pipelines &amp; Dashboards · Data analytics and data engineering</p>
+    <h1>Debie Galleros</h1>
+    <p class="role">Data analytics, data engineering and data visualization: pipelines on AWS, Snowflake and BigQuery, and dashboards in Looker Studio and Power&nbsp;BI</p>
+    <p class="links"><a href="https://github.com/debiegalleros">github.com/debiegalleros</a><a class="screen-only" href="Debie-Galleros-Data-Pipelines-and-Dashboards.pdf">PDF version</a><a class="print-only" href="https://debiegalleros.github.io/pipelines-and-dashboards/">debiegalleros.github.io/pipelines-and-dashboards</a></p>
+    <p class="lede">I have worked in data since 2022. I take data from where it starts, such as ad platforms, website tracking and seller reports, and move it into a database or warehouse with scheduled jobs and SQL. Then I build the dashboards and reports that teams use to follow their campaigns, websites and sales.</p>
+    <p class="lede">This page shows how the data flows, nine projects, recreations of twelve of my dashboards, a sample quarterly report, my GA4 tracking work, and short code examples. Client names and real numbers are left out, so every chart here uses sample data.</p>
+    <div class="timeline-wrap">
+      <p class="label">Timeline</p>
+      <ol class="timeline">
+        <li><span class="when">Jun 2022 – Jun 2024</span><b>Digital Analytics Specialist</b><span class="org">Katapult Digital</span><span>BI dashboards in Looker Studio and Power BI for media campaigns, with the highest number of builds in 6 months. ETL pipelines with Datorama and BigQuery for cross-channel marketing data.</span></li>
+        <li><span class="when">Jul 2024 – Jan 2025</span><b>Business Intelligence Developer</b><span class="org">SpikeUp Media</span><span>BigQuery data models and SQL for ETL. Dashboards and reports in Looker Studio and Power BI, built from business requirements.</span></li>
+        <li><span class="when">Feb 2025 – Nov 2026</span><b>Senior Data Analyst</b><span class="org">Confidential Client</span><span>Reporting pipelines on AWS and Snowflake, BigQuery models and data-quality checks, GA4 tracking, and dashboards in Looker Studio, Power BI and Lovable. Social media analysis.</span></li>
+      </ol>
+    </div>
+  </header>
+
+  <section class="keep" aria-labelledby="flow">
+    <h2 id="flow">How the data flows</h2>
+    <p class="intro">The path most of my projects follow, from where the data starts to the dashboard people read. Each project uses some of these tools, not all of them.</p>
+    <ol class="pipeline">
+      <li class="stage">
+        <p class="label">1 · Sources</p>
+        <h3>Where the data starts</h3>
+        <ul class="tags"><li>GA4 and GTM events</li><li>Google Search</li><li>Google Display</li><li>Bing</li><li>YouTube</li><li>Facebook</li><li>TikTok</li><li>Search Console</li><li>Amazon seller reports</li><li>File exports</li></ul>
+      </li>
+      <li class="stage">
+        <p class="label">2 · Extract and transform</p>
+        <h3>Scheduled jobs pull, clean and join it</h3>
+        <ul class="tags"><li>AWS Lambda (Python)</li><li>EventBridge</li><li>Snowflake tasks</li><li>Datorama</li><li>SQL</li><li>Apps Script</li></ul>
+      </li>
+      <li class="stage">
+        <p class="label">3 · Store</p>
+        <h3>Tables ready to query</h3>
+        <ul class="tags"><li>S3</li><li>RDS PostgreSQL</li><li>Snowflake</li><li>BigQuery</li></ul>
+      </li>
+      <li class="stage">
+        <p class="label">4 · Dashboards</p>
+        <h3>Where people read it</h3>
+        <ul class="tags"><li>Looker Studio</li><li>Power BI</li><li>Lovable</li></ul>
+      </li>
+    </ol>
+    <p class="checks"><b>Checks along the way:</b> every required file is there before a job runs, no row is loaded twice, and totals match across every output.</p>
+  </section>
+
+  <section aria-labelledby="cases">
+    <h2 id="cases">Case studies</h2>
+    <div class="cases">
+
+      <article class="case">
+        <div class="case-head">
+          <p class="label">Data engineering · AWS, PostgreSQL</p>
+          <h3>Seller reports, from upload to weekly review</h3>
+        </div>
+        <dl>
+          <dt>Problem</dt>
+          <dd>Weekly business reviews needed sales, advertising, fees and inventory for each product in one table. The team built it by hand, copying each Seller Central CSV into Excel, and every report had its own layout.</dd>
+          <dt>Data</dt>
+          <dd>10 report types, including sales, sponsored ads, transactions, orders and two inventory reports.</dd>
+          <dt>What I built</dt>
+          <dd>A Lambda function that runs when a file lands in S3. It finds the report type from the file name, skips extra header rows, cleans the columns, loads the rows into PostgreSQL on RDS, and moves the file to a processed folder. A stored procedure adds only rows the archive doesn't have yet, and a SQL view joins every report by brand, day and product. The database sits in a private network, so I wrote the team's guide to reach it through an SSH tunnel in VS Code, with a query that checks new uploads arrive.</dd>
+          <dt>Outcome</dt>
+          <dd class="result">No more copying CSVs into Excel: one table per brand, day and product with ad spend, sales, conversion rate, inventory cover and fees. <span>New reports show up as soon as they're uploaded, every brand is reviewed from the same numbers, and fees on orders with several products count once.</span></dd>
+        </dl>
+      </article>
+
+      <article class="case">
+        <div class="case-head">
+          <p class="label">Data engineering · AWS, Snowflake</p>
+          <h3>Monthly brand reports on a schedule</h3>
+        </div>
+        <dl>
+          <dt>Problem</dt>
+          <dd>Each brand needed a monthly report by product, with weekly trends and a comparison with the month before. Data shared with us in Snowflake also had to reach the reporting database.</dd>
+          <dt>Data</dt>
+          <dd>Up to 16 Amazon reports per brand each month, saved in S3 by report type, brand and month: sales and traffic, sponsored ads, orders, transactions, listings, inventory, search performance and SKU economics. Daily, product and search query performance shared in Snowflake.</dd>
+          <dt>What I built</dt>
+          <dd>A monthly Lambda job for each brand, started by its own EventBridge rule instead of by every file upload. It writes nothing if a required report is missing and skips months already done. It writes five files, including a summary, a by-product file, a weekly series and a calendar of Sunday-to-Saturday retail weeks, each with a timestamped backup. In Snowflake, scheduled tasks refresh six mirror tables, and a sync job copies only new rows into PostgreSQL.</dd>
+          <dt>Outcome</dt>
+          <dd class="result">Each brand's monthly report builds itself on a schedule, with weekly, by-product and summary totals that match exactly. <span>A month with a missing report is held back instead of showing wrong totals, and the mirror tables match their source row for row. I tested in a separate bucket first and watched each run in CloudWatch.</span></dd>
+        </dl>
+      </article>
+
+      <article class="case">
+        <div class="case-head">
+          <p class="label">Dashboards · GA4, Looker Studio <a class="chip t-plum" href="#dash-global">Dashboard H</a><a class="chip t-rust" href="#dash-scan">Dashboard I</a></p>
+          <h3>One dashboard for websites in seven countries</h3>
+        </div>
+        <dl>
+          <dt>Problem</dt>
+          <dd>A brand ran websites in seven countries, plus a site shoppers reach by scanning the pack. It needed a global view and the same view for each country.</dd>
+          <dt>Data</dt>
+          <dd>GA4 for each country site: channels, pages, scroll depth, CTA clicks and purchases. Scan data for the pack site.</dd>
+          <dt>What I built</dt>
+          <dd>16 views, global and per country, for the websites and the scan site. Each website view follows five steps: Catch, Connect, Convert, Webshop and Continue. The scan views show weekly scans, scans by city tier, scan errors and accuracy, and a product breakdown. A glossary page defines every metric.</dd>
+          <dt>Outcome</dt>
+          <dd class="result">All seven markets in one dashboard, on the same metrics. <span>Teams can compare markets side by side, follow each one through the same five steps, and check what any metric means in the glossary.</span></dd>        </dl>
+      </article>
+
+      <article class="case">
+        <div class="case-head">
+          <p class="label">Web analytics · GA4, GTM, Looker Studio <a class="chip t-orange" href="#dash-journey">Dashboard A</a><a class="chip t-amber" href="#dash-site">Dashboard B</a><a class="chip t-jade" href="#dash-goals">Dashboard C</a></p>
+          <h3>Measuring a visitor journey, stage by stage</h3>
+        </div>
+        <dl>
+          <dt>Problem</dt>
+          <dd>A health-education website wanted to see how far visitors moved, from first interest to taking action, not just how many came.</dd>
+          <dt>Data</dt>
+          <dd>29 GA4 events tracked through GTM, such as polls, guide downloads, video plays and finder searches, by channel and device.</dd>
+          <dt>What I built</dt>
+          <dd>I grouped the events into six journey stages and their key actions. A monthly Looker Studio dashboard shows each stage's rate and sessions against the period before, plus traffic by channel and device. Each quarter I wrote a highlights deck with an executive summary, including how much the cookie consent banner limited what GA4 could measure.</dd>
+          <dt>Outcome</dt>
+          <dd class="result">The team can see how far visitors get, not only how many arrive. <span>Each stage's rate shows where visitors drop off, and the quarterly deck turned the numbers into next steps for the site. The consent check showed how much traffic GA4 couldn't see, so the numbers are read with that in mind.</span></dd>        </dl>
+      </article>
+
+      <article class="case">
+        <div class="case-head">
+          <p class="label">Event tracking · GTM, GA4, Looker Studio <a class="chip t-blue" href="#dash-popup">Dashboard E</a><a class="chip t-green" href="#dash-cta">Dashboard F</a></p>
+          <h3>Pop-up survey and call-to-action tracking</h3>
+        </div>
+        <dl>
+          <dt>Problem</dt>
+          <dd>A brand showed a survey pop-up across its site and three calls to action on two campaign sites. It needed to know where people saw them, where they responded, and which traffic brought responses.</dd>
+          <dt>Data</dt>
+          <dd>GA4 events for pop-up views, form submits and CTA clicks, with source, medium, device, page and product. Visits from a messaging app's in-app browser were split from the rest.</dd>
+          <dt>What I built</dt>
+          <dd>Two Looker Studio dashboards with filters for device, source, page type and product: submissions by day and hour, submission rate by page type, CTA click-through over time, and tables by CTA, device, source and channel. Submit tracking started seven weeks after pop-up tracking, so the submission rate only counts from that date, and the dashboard says so.</dd>
+          <dt>Outcome</dt>
+          <dd class="result">The team can see where the survey and calls to action work, by page, source and device. <span>Pages are judged by the responses they bring, not just views, and messaging-app visitors can be compared with everyone else. The submission rate stays honest because it leaves out the weeks before submits were tracked.</span></dd>        </dl>
+      </article>
+
+      <article class="case">
+        <div class="case-head">
+          <p class="label">SEO analytics · GA4, Search Console <a class="chip t-violet" href="#dash-seo">Dashboard G</a></p>
+          <h3>A monthly SEO report from two sources</h3>
+        </div>
+        <dl>
+          <dt>Problem</dt>
+          <dd>The team wanted one monthly view of organic search: which pages held up, which searches brought people in, and the trend over a year.</dd>
+          <dt>Data</dt>
+          <dd>GA4 sessions, bounce rate and time on site by landing page. Search Console clicks, impressions, click-through rate and position by query and page, with queries in two languages.</dd>
+          <dt>What I built</dt>
+          <dd>Page groups such as home, guides, product pages and sign-up, each with month-on-month change. Query groups that split branded from generic searches. 12-month trend charts for each page group, and a table of visits referred by AI assistants such as ChatGPT.</dd>
+          <dt>Outcome</dt>
+          <dd class="result">One monthly view of organic search, from both tools. <span>Branded and generic searches are kept apart, each page group shows what grew or fell, and visits from AI assistants are tracked as their own source.</span></dd>        </dl>
+      </article>
+
+      <article class="case">
+        <div class="case-head">
+          <p class="label">Digital campaigns · Datorama, BigQuery, Looker Studio <a class="chip t-petrol" href="#dash-bank-spend">Dashboard J</a><a class="chip t-red" href="#dash-bank-search">Dashboard K</a><a class="chip t-pink" href="#dash-bank-overview">Dashboard L</a></p>
+          <h3>Bank campaigns, from many platforms to one view</h3>
+        </div>
+        <dl>
+          <dt>Problem</dt>
+          <dd>A bank ran search, display, social and video campaigns. Each ad platform reported in its own format, and the team needed one view of spend, clicks and conversions, down to each step of the application form.</dd>
+          <dt>Data</dt>
+          <dd>Ad platform exports and website conversion tags, such as brochure downloads, lead forms and applications, combined in Datorama and BigQuery.</dd>
+          <dt>What I built</dt>
+          <dd>Three Looker Studio dashboards: a paid media overview of traffic, spend and conversions; a search report by campaign, keyword group and product; and a search and display report that follows the application form step by step, with cost per step and written insights.</dd>
+          <dt>Outcome</dt>
+          <dd class="result">Every channel's spend and results in one place, on the same definitions. <span>The team can see where applicants drop out of the form, what each step costs, and which sites and keywords cost the most for what they bring.</span></dd>
+        </dl>
+      </article>
+
+      <article class="case">
+        <div class="case-head">
+          <p class="label">Social media analysis · Facebook groups <a class="chip t-indigo" href="#dash-fb-daily">Dashboard D</a></p>
+          <h3>Daily tracking of liver-health Facebook groups</h3>
+        </div>
+        <dl>
+          <dt>Problem</dt>
+          <dd>The liver-health program ran Facebook groups where members and admins post every day. The team needed a steady record of what was posted, by whom, and how members responded.</dd>
+          <dt>Data</dt>
+          <dd>Daily posts from members (user-generated content) and admins, with their comments and reactions.</dd>
+          <dt>What I built</dt>
+          <dd>A daily post tracker that separates member posts from admin posts and counts the comments and replies each one gets. It shows posting by day and weekday, and which admin posts start the most conversation.</dd>
+          <dt>Outcome</dt>
+          <dd class="result">The team can see how active the groups are each day and which admin posts get members talking. <span>Admin posts can be planned around what works.</span></dd>
+        </dl>
+      </article>
+
+      <article class="case">
+        <div class="case-head">
+          <p class="label">Synthesized analysis · AI text classification (LLM) <a class="chip t-olive" href="#deck">Sample deck</a></p>
+          <h3>How treatment-ready is the community?</h3>
+        </div>
+        <dl>
+          <dt>Problem</dt>
+          <dd>Beyond counts, the team needed to understand the community: what members care about, who leads the conversation, and how ready members are to act on treatment.</dd>
+          <dt>Data</dt>
+          <dd>Thousands of member posts and comments from the daily tracker.</dd>
+          <dt>What I built</dt>
+          <dd>I used our work AI tool, a large language model, as a text classifier. One fixed prompt template with set categories and a JSON answer meant every row was coded the same way: a theme such as community support, lifestyle or treatment questions, a behaviour such as asking for advice, and a treatment-readiness stage. I found the top voices, synthesized the results, and presented them in a quarterly report deck.</dd>
+          <dt>Outcome</dt>
+          <dd class="result">A clear picture of what members need and how ready they are to talk about treatment. <span>Each quarterly report gave the team themes to build content around and the share of members ready to ask a doctor.</span></dd>
+        </dl>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="page-break" aria-labelledby="dashboards">
+    <h2 id="dashboards">Dashboard recreations</h2>
+    <p class="intro">Twelve dashboards in three industries, rebuilt for this page. Each one follows the sections, filters and metrics of my original in Looker Studio, and each has its own colours. The filter bars show the filters the originals had. Every number is sample data, made up for this page.<span class="screen-only"> Hover over a chart to see its values.</span></p>
+    <div class="dash-groups">
+
+    <div class="dash-group">
+      <h3 class="group-title">Pharma <span>· liver-health awareness website and Facebook groups</span></h3>
+      <div class="dashes">
+
+      <article class="dash t-orange" id="dash-journey" aria-labelledby="d-journey">
+        <div class="dash-head"><h3 id="d-journey">Visitor journey</h3><span class="dash-meta">Jan – Mar · vs Oct – Dec</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Pharmaceutical company <b>Product</b> Liver-health awareness website</p>
+          <p class="dash-from">From case study 4, "Measuring a visitor journey, stage by stage"</p>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Date range</span></div>
+          <div class="kpis">
+            <div class="kpi"><span class="k-label">Sessions</span><b class="k-value">48,210</b><span class="delta good">▲ 12.4%</span></div>
+            <div class="kpi"><span class="k-label">Engaged sessions</span><b class="k-value">26,050</b><span class="delta good">▲ 9.8%</span></div>
+            <div class="kpi"><span class="k-label">Engagement rate</span><b class="k-value">54.0%</b><span class="delta good">▲ 1.3 pts</span></div>
+          </div>
+          <p class="dsec">Journey stages and their key actions</p>
+          <div class="phases">
+            <div class="phase"><p class="phase-head">Interest</p><div class="cells">
+              <div class="cell"><span class="k-label">Exploring</span><span class="ka">Key actions</span><b class="k-value">9.6%</b><span class="delta good">▲ 0.8 pts</span><span class="sub">4,630 sessions<br>12,410 events</span></div>
+              <div class="cell"><span class="k-label">Returning</span><span class="ka">Sign-up and webinar submits</span><b class="k-value">4.1%</b><span class="delta good">▲ 0.3 pts</span><span class="sub">1,980 sessions<br>2,140 events</span></div>
+              <div class="cell"><span class="k-label">Stated interest</span><span class="ka">Concern poll submits</span><b class="k-value">1.2%</b><span class="delta bad">▼ 0.1 pts</span><span class="sub">580 sessions<br>610 events</span></div>
+            </div></div>
+            <div class="phase"><p class="phase-head">Intent</p><div class="cells">
+              <div class="cell"><span class="k-label">Preparing</span><span class="ka">Guide download, advocacy tool</span><b class="k-value">3.9%</b><span class="delta good">▲ 0.6 pts</span><span class="sub">1,880 sessions<br>2,960 events</span></div>
+              <div class="cell"><span class="k-label">Stated intent</span><span class="ka">Testing poll submits</span><b class="k-value">0.8%</b><span class="delta good">▲ 0.1 pts</span><span class="sub">390 sessions<br>405 events</span></div>
+            </div></div>
+            <div class="phase"><p class="phase-head">Action</p><div class="cells">
+              <div class="cell"><span class="k-label">Acting</span><span class="ka">Specialist poll, finder searches, brand links</span><b class="k-value">0.6%</b><span class="delta bad">▼ 0.2 pts</span><span class="sub">290 sessions<br>330 events</span></div>
+            </div></div>
+          </div>
+          <p class="foot">Each stage shows % of sessions engaged (sessions with the stage's key actions ÷ all sessions), then sessions engaged and total events.</p>
+        </div>
+      </article>
+
+      <article class="dash t-amber" id="dash-site" aria-labelledby="d-site">
+        <div class="dash-head"><h3 id="d-site">Site performance</h3><span class="dash-meta">December · vs November</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Pharmaceutical company <b>Product</b> Liver-health awareness website</p>
+          <p class="dash-from">From case study 4, "Measuring a visitor journey, stage by stage"</p>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Month</span></div>
+          <p class="dsec">Topline site performance</p>
+          <div class="kpis k6">
+            <div class="kpi"><span class="k-label">Sessions</span><b class="k-value">8,940</b><span class="delta bad">▼ 1.7%</span></div>
+            <div class="kpi"><span class="k-label">Total users</span><b class="k-value">7,410</b><span class="delta bad">▼ 1.2%</span></div>
+            <div class="kpi"><span class="k-label">Avg. session</span><b class="k-value">03:10</b><span class="delta good">▲ 8.2%</span></div>
+            <div class="kpi"><span class="k-label">Engagement rate</span><b class="k-value">50.7%</b><span class="delta good">▲ 1.7 pts</span></div>
+            <div class="kpi"><span class="k-label">Interest goal rate</span><b class="k-value">1.80%</b><span class="delta good">▲ 0.3 pts</span></div>
+            <div class="kpi"><span class="k-label">Intent goal rate</span><b class="k-value">0.78%</b><span class="delta good">▲ 0.1 pts</span></div>
+          </div>
+          <div class="chart" data-chart="b-channels" role="img" aria-label="Stacked columns: total site sessions by channel, July to December. Paid social is the largest channel every month."></div>
+          <div class="duo">
+            <div class="chart" data-chart="b-share" role="img" aria-label="Sessions by channel: paid social 56%, paid search 24%, organic search 12%, other 8%."></div>
+            <div class="chart" data-chart="b-device" role="img" aria-label="Sessions by device: mobile 81%, desktop 17%, tablet 2%."></div>
+          </div>
+          <div class="duo">
+            <div class="chart" data-chart="b-interest" role="img" aria-label="Stacked columns: interest-segment sessions by channel, September to December."></div>
+            <div class="chart" data-chart="b-intent" role="img" aria-label="Stacked columns: intent-segment sessions by channel, September to December."></div>
+          </div>
+          <p class="foot">Interest and intent goal rates = sessions that answered the interest or intent poll ÷ all sessions.</p>
+        </div>
+      </article>
+
+      <article class="dash t-jade" id="dash-goals" aria-labelledby="d-goals">
+        <div class="dash-head"><h3 id="d-goals">Goal conversions and key actions</h3><span class="dash-meta">Sep – Dec</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Pharmaceutical company <b>Product</b> Liver-health awareness website</p>
+          <p class="dash-from">From case study 4, "Measuring a visitor journey, stage by stage"</p>
+          <p class="dsec">Interest segment</p>
+          <div class="kpis">
+            <div class="kpi"><span class="k-label">Key actions</span><b class="k-value">465</b><span class="delta good">▲ 2.0%</span></div>
+            <div class="kpi"><span class="k-label">Key action rate</span><b class="k-value">0.84%</b><span class="delta bad">▼ 0.15 pts</span></div>
+            <div class="kpi"><span class="k-label">Conversion rate</span><b class="k-value">0.31%</b><span class="delta good">▲ 0.02 pts</span></div>
+          </div>
+          <div class="duo">
+            <div class="chart" data-chart="c-int-rate" role="img" aria-label="Columns: interest key action rate by month, from 1.0 percent in September to 0.84 percent in December."></div>
+            <div class="chart" data-chart="c-int-ch" role="img" aria-label="Interest key actions by channel: paid search 51%, paid social 38%, organic search 7%, other 4%."></div>
+          </div>
+          <p class="dsec">Intent segment</p>
+          <div class="kpis">
+            <div class="kpi"><span class="k-label">Key actions</span><b class="k-value">380</b><span class="delta good">▲ 3.8%</span></div>
+            <div class="kpi"><span class="k-label">Key action rate</span><b class="k-value">0.69%</b><span class="delta good">▲ 0.04 pts</span></div>
+            <div class="kpi"><span class="k-label">Conversion rate</span><b class="k-value">0.16%</b><span class="delta good">▲ 0.01 pts</span></div>
+          </div>
+          <div class="duo">
+            <div class="chart" data-chart="c-ten-rate" role="img" aria-label="Columns: intent key action rate by month, between 0.66 and 0.76 percent."></div>
+            <div class="chart" data-chart="c-ten-ch" role="img" aria-label="Intent key actions by channel: paid search 48%, paid social 41%, organic search 8%, other 3%."></div>
+          </div>
+          <p class="dsec">Key actions</p>
+          <div class="kpis">
+            <div class="kpi"><span class="k-label">Site sessions</span><b class="k-value">48,210</b><span class="delta good">▲ 12.4%</span></div>
+            <div class="kpi"><span class="k-label">Key actions</span><b class="k-value">4,812</b><span class="delta good">▲ 18.6%</span></div>
+            <div class="kpi"><span class="k-label">Key action rate</span><b class="k-value">9.98%</b><span class="delta good">▲ 0.5 pts</span></div>
+          </div>
+          <div class="chart" data-chart="c-ka-month" role="img" aria-label="Stacked columns: key actions by month and channel, July to December, peaking in November."></div>
+          <div class="chart">
+            <p class="chart-title">Key actions by event</p>
+            <div class="tbl-wrap">
+              <table class="dt">
+                <thead><tr><th>Event name</th><th>Sessions</th><th>Change</th></tr></thead>
+                <tbody>
+                  <tr><td><code>form_start</code></td><td>1,820</td><td><span class="delta good">▲ 21.4%</span></td></tr>
+                  <tr><td><code>slider_progress</code></td><td>1,460</td><td><span class="delta good">▲ 18.0%</span></td></tr>
+                  <tr><td><code>form_submit</code></td><td>1,310</td><td><span class="delta good">▲ 15.2%</span></td></tr>
+                  <tr><td><code>poll_concern</code></td><td>960</td><td><span class="delta good">▲ 9.7%</span></td></tr>
+                  <tr><td><code>webinar_complete</code></td><td>690</td><td><span class="delta good">▲ 27.3%</span></td></tr>
+                  <tr><td><code>poll_submit</code></td><td>520</td><td><span class="delta bad">▼ 4.1%</span></td></tr>
+                  <tr><td><code>webinar_register</code></td><td>455</td><td><span class="delta good">▲ 12.6%</span></td></tr>
+                  <tr><td><code>test_request_guide</code></td><td>400</td><td><span class="delta good">▲ 8.9%</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="dash t-indigo" id="dash-fb-daily" aria-labelledby="d-fb1">
+        <div class="dash-head"><h3 id="d-fb1">Facebook groups: daily posts</h3><span class="dash-meta">Last 8 weeks · vs 8 weeks before</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Pharmaceutical company <b>Product</b> Liver-health Facebook groups</p>
+          <p class="dash-from">From case study 8, "Daily tracking of liver-health Facebook groups"</p>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Group</span><span class="f">Posted by</span><span class="f">Format</span><span class="f">Date range</span></div>
+          <div class="kpis k4">
+            <div class="kpi"><span class="k-label">Member posts</span><b class="k-value">1,008</b><span class="delta good">▲ 12.0%</span></div>
+            <div class="kpi"><span class="k-label">Admin posts</span><b class="k-value">138</b><span class="delta good">▲ 4.5%</span></div>
+            <div class="kpi"><span class="k-label">Comments</span><b class="k-value">7,560</b><span class="delta good">▲ 15.3%</span></div>
+            <div class="kpi"><span class="k-label">Active members</span><b class="k-value">1,940</b><span class="delta good">▲ 8.7%</span></div>
+          </div>
+          <div class="chart" data-chart="fb-daily" role="img" aria-label="Line chart: posts by day over 8 weeks. Members post about 5 to 28 times a day; admins post 1 to 4 times a day."></div>
+          <div class="duo">
+            <div class="chart" data-chart="fb-weekday" role="img" aria-label="Columns: member posts by weekday. Thursday is highest and Sunday lowest."></div>
+            <div class="chart">
+              <p class="chart-title">Admin posts that started the most conversation</p>
+              <div class="tbl-wrap">
+                <table class="dt wrap-th">
+                  <thead><tr><th>Admin post</th><th>Comments</th><th>Members replying</th></tr></thead>
+                  <tbody>
+                    <tr><td>Ask a specialist (live)</td><td>412</td><td>268</td></tr>
+                    <tr><td>Myth vs fact</td><td>236</td><td>171</td></tr>
+                    <tr><td>Member story of the week</td><td>198</td><td>142</td></tr>
+                    <tr><td>Weekly check-in poll</td><td>187</td><td>160</td></tr>
+                    <tr><td>Meal idea</td><td>121</td><td>94</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      </div>
+    </div>
+
+    <div class="dash-group">
+      <h3 class="group-title">Infant nutrition <span>· formula milk brand</span></h3>
+      <div class="dashes">
+
+      <article class="dash t-blue" id="dash-popup" aria-labelledby="d-popup">
+        <div class="dash-head"><h3 id="d-popup">Intercept survey</h3><span class="dash-meta">Last 8 months</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Infant-nutrition brand <b>Product</b> Formula milk, brand website</p>
+          <p class="dash-from">From case study 5, "Pop-up survey and call-to-action tracking"</p>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Device</span><span class="f">UTM source</span><span class="f">UTM medium</span><span class="f">Page type</span><span class="f">Date range</span></div>
+          <div class="kpis k4">
+            <div class="kpi"><span class="k-label">Pop-ups</span><b class="k-value">26,150</b><span class="delta good">▲ 6.2%</span></div>
+            <div class="kpi"><span class="k-label">Form submissions</span><b class="k-value">612</b><span class="delta good">▲ 14.0%</span></div>
+            <div class="kpi"><span class="k-label">Submission rate*</span><b class="k-value">2.34%</b><span class="delta good">▲ 0.16 pts</span></div>
+            <div class="kpi"><span class="k-label">Form impression rate</span><b class="k-value">6.4%</b><span class="delta good">▲ 0.3 pts</span></div>
+          </div>
+          <p class="foot">*Form submissions were tracked from a later date than pop-ups, so the submission rate counts from that date on.</p>
+          <p class="dsec">Submissions over time</p>
+          <div class="duo">
+            <div class="chart" data-chart="e-daily" role="img" aria-label="Line chart: survey form submissions by date, mostly 5 to 15 a day with two campaign spikes near 30."></div>
+            <div class="chart" data-chart="e-hour" role="img" aria-label="Area chart: survey form submissions by time of day, lowest overnight and highest between 6 and 8 pm."></div>
+          </div>
+          <p class="dsec">Submissions by UTM source / medium</p>
+          <div class="chart" data-chart="e-source" role="img" aria-label="Bars: submissions by source and medium, led by direct traffic and organic search."></div>
+          <p class="dsec">Device breakdown</p>
+          <div class="duo">
+            <div class="chart" data-chart="e-dev-pop" role="img" aria-label="Pop-up sessions by device: mobile 70%, desktop 29%, tablet 1%."></div>
+            <div class="chart" data-chart="e-dev-sub" role="img" aria-label="Survey submissions by device: mobile 74%, desktop 26%."></div>
+          </div>
+          <p class="dsec">Product range pages vs other pages, side by side</p>
+          <div class="trio">
+            <div class="chart" data-chart="e-type-pop" role="img" aria-label="Bars: pop-ups by page type. Other pages 22,290, product range pages 3,860."></div>
+            <div class="chart" data-chart="e-type-sub" role="img" aria-label="Bars: submissions by page type. Other pages 508, product range pages 104."></div>
+            <div class="chart" data-chart="e-type-rate" role="img" aria-label="Bars: submission rate by page type. Product range pages 2.7%, other pages 2.3%."></div>
+          </div>
+          <p class="dsec">Pop-ups vs submissions by page</p>
+          <div class="trio">
+            <div class="chart" data-chart="e-top-pop" role="img" aria-label="Bars: top pages by pop-ups, where the survey appears most."></div>
+            <div class="chart" data-chart="e-top-sub" role="img" aria-label="Bars: top pages by submissions, where people complete the survey."></div>
+            <div class="chart" data-chart="e-top-rate" role="img" aria-label="Bars: top pages by submission rate."></div>
+          </div>
+          <div class="duo">
+            <div class="chart">
+              <p class="chart-title">Product range page performance</p>
+              <div class="tbl-wrap">
+                <table class="dt">
+                  <thead><tr><th>Page path</th><th>Pop-ups</th><th>Submissions</th><th>Rate</th></tr></thead>
+                  <tbody>
+                    <tr><td>/range-classic</td><td>1,720</td><td>26</td><td>1.5%</td></tr>
+                    <tr><td>/range-gold</td><td>1,010</td><td>31</td><td>3.1%</td></tr>
+                    <tr><td>/range-organic</td><td>520</td><td>13</td><td>2.5%</td></tr>
+                    <tr><td>/range-kids</td><td>470</td><td>22</td><td>4.7%</td></tr>
+                    <tr><td>/range-premium</td><td>140</td><td>12</td><td>8.6%</td></tr>
+                    <tr><td><b>All range pages</b></td><td><b>3,860</b></td><td><b>104</b></td><td><b>2.7%</b></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="chart">
+              <p class="chart-title">Other page performance</p>
+              <div class="tbl-wrap">
+                <table class="dt">
+                  <thead><tr><th>Page path</th><th>Pop-ups</th><th>Submissions</th><th>Rate</th></tr></thead>
+                  <tbody>
+                    <tr><td>/latest-promotion</td><td>8,420</td><td>92</td><td>1.1%</td></tr>
+                    <tr><td>/ (home)</td><td>5,860</td><td>96</td><td>1.6%</td></tr>
+                    <tr><td>/first-purchase-offer</td><td>2,140</td><td>–</td><td>–</td></tr>
+                    <tr><td>/products</td><td>1,620</td><td>15</td><td>0.9%</td></tr>
+                    <tr><td>/checklist</td><td>1,450</td><td>6</td><td>0.4%</td></tr>
+                    <tr><td><b>All other pages</b></td><td><b>22,290</b></td><td><b>508</b></td><td><b>2.3%</b></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="dash t-green" id="dash-cta" aria-labelledby="d-cta">
+        <div class="dash-head"><h3 id="d-cta">CTA performance</h3><span class="dash-meta">Last 6 weeks · vs 6 weeks before</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Infant-nutrition brand <b>Product</b> Formula milk, two campaign sites</p>
+          <p class="dash-from">From case study 5, "Pop-up survey and call-to-action tracking"</p>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Site</span><span class="f">CTA</span><span class="f">Device</span><span class="f">Source / medium</span><span class="f">Product name</span><span class="f">Product ID</span><span class="f">Date range</span></div>
+          <div class="kpis k5">
+            <div class="kpi"><span class="k-label">Total sessions</span><b class="k-value">15,920</b><span class="delta bad">▼ 4.1%</span></div>
+            <div class="kpi"><span class="k-label">Total users</span><b class="k-value">11,040</b><span class="delta bad">▼ 3.6%</span></div>
+            <div class="kpi"><span class="k-label">Messaging-app sessions</span><b class="k-value">10,840</b><span class="delta bad">▼ 2.0%</span></div>
+            <div class="kpi"><span class="k-label">Other sessions</span><b class="k-value">5,080</b><span class="delta bad">▼ 8.3%</span></div>
+            <div class="kpi"><span class="k-label">CTA click-through</span><b class="k-value">8.5%</b><span class="delta good">▲ 0.6 pts</span></div>
+          </div>
+          <p class="foot">CTA click-through = sessions with at least one click on any of the three CTAs ÷ all sessions.</p>
+          <div class="duo">
+            <div class="chart" data-chart="f-sessions" role="img" aria-label="Line chart: sessions over time from a messaging app's in-app browser and from other browsers. Messaging-app sessions are about twice the rest."></div>
+            <div class="chart" data-chart="f-ctr" role="img" aria-label="Line chart: CTA click-through over time. Messaging-app visitors click through at about 12 percent, others at about 2 percent."></div>
+          </div>
+          <div class="trio">
+            <div class="chart" data-chart="f-cta" role="img" aria-label="Bars: CTA clicks by CTA. The 3-minute quiz gets most clicks."></div>
+            <div class="chart" data-chart="f-device" role="img" aria-label="CTA sessions by device: mobile 90%, desktop 9%, tablet 1%."></div>
+            <div class="chart" data-chart="f-product" role="img" aria-label="Bars: CTA sessions by product. Most sessions have no product set."></div>
+          </div>
+          <div class="duo">
+            <div class="chart">
+              <p class="chart-title">CTA performance</p>
+              <div class="tbl-wrap">
+                <table class="dt">
+                  <thead><tr><th>CTA</th><th>Sessions</th><th>Users</th><th>Clicks</th><th>CTR</th></tr></thead>
+                  <tbody>
+                    <tr><td>3-minute quiz</td><td>1,010</td><td>980</td><td>1,046</td><td>6.57%</td></tr>
+                    <tr><td>Product report</td><td>238</td><td>221</td><td>251</td><td>1.58%</td></tr>
+                    <tr><td>Member club</td><td>51</td><td>49</td><td>56</td><td>0.35%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="chart">
+              <p class="chart-title">Source / medium by CTA</p>
+              <div class="tbl-wrap">
+                <table class="dt">
+                  <thead><tr><th>Source / medium</th><th>CTA</th><th>Clicks</th><th>CTR</th></tr></thead>
+                  <tbody>
+                    <tr><td>(direct) / (none)</td><td>Quiz</td><td>912</td><td>5.73%</td></tr>
+                    <tr><td>(not set)</td><td>Quiz</td><td>70</td><td>0.44%</td></tr>
+                    <tr><td>(not set)</td><td>Report</td><td>48</td><td>0.30%</td></tr>
+                    <tr><td>messaging app / referral</td><td>Quiz</td><td>31</td><td>0.19%</td></tr>
+                    <tr><td>google / organic</td><td>Quiz</td><td>22</td><td>0.14%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="dash t-violet" id="dash-seo" aria-labelledby="d-seo">
+        <div class="dash-head"><h3 id="d-seo">Organic search</h3><span class="dash-meta">Last month · vs month before</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Infant-nutrition brand <b>Product</b> Formula milk, brand website <b>Data</b> GA4, Search Console</p>
+          <p class="dash-from">From case study 6, "A monthly SEO report from two sources"</p>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Page group</span><span class="f">Query</span><span class="f">Date range</span></div>
+          <div class="kpis k4">
+            <div class="kpi"><span class="k-label">Search clicks</span><b class="k-value">9,840</b><span class="delta good">▲ 4.2%</span></div>
+            <div class="kpi"><span class="k-label">Impressions</span><b class="k-value">412,300</b><span class="delta good">▲ 7.9%</span></div>
+            <div class="kpi"><span class="k-label">Click-through rate</span><b class="k-value">2.39%</b><span class="delta bad">▼ 0.08 pts</span></div>
+            <div class="kpi"><span class="k-label">Avg. position</span><b class="k-value">8.2</b><span class="delta good">▲ 0.4 better</span></div>
+          </div>
+          <p class="dsec">Search Console: query groups</p>
+          <div class="duo">
+            <div class="chart">
+              <div class="tbl-wrap">
+                <table class="dt wrap-th">
+                  <thead><tr><th>Query group</th><th>Clicks</th><th>Change</th><th>Avg. position</th></tr></thead>
+                  <tbody>
+                    <tr><td><b>Overall</b></td><td><b>9,840</b></td><td><span class="delta good">▲ 4.2%</span></td><td>8.2</td></tr>
+                    <tr><td>Branded</td><td>4,210</td><td><span class="delta good">▲ 3.1%</span></td><td>3.6</td></tr>
+                    <tr><td>Products</td><td>2,180</td><td><span class="delta bad">▼ 6.5%</span></td><td>13.7</td></tr>
+                    <tr><td>Branded sample</td><td>0</td><td>–</td><td>no data</td></tr>
+                    <tr><td>Generic sample / member club</td><td>960</td><td><span class="delta good">▲ 22.2%</span></td><td>3.6</td></tr>
+                    <tr><td>Hubs</td><td>2,040</td><td><span class="delta bad">▼ 8.3%</span></td><td>7.1</td></tr>
+                    <tr><td>Content hub</td><td>650</td><td><span class="delta bad">▼ 0.5%</span></td><td>7.2</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="chart">
+              <p class="chart-title">Top queries: hubs</p>
+              <div class="tbl-wrap">
+                <table class="dt">
+                  <thead><tr><th>Query</th><th>Clicks</th></tr></thead>
+                  <tbody>
+                    <tr><td>growth spurt signs</td><td>48</td></tr>
+                    <tr><td>what contractions feel like</td><td>25</td></tr>
+                    <tr><td>baby refusing milk</td><td>22</td></tr>
+                    <tr><td>hospital bag checklist</td><td>22</td></tr>
+                    <tr><td>false labour</td><td>16</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <p class="dsec">12-month trends: search clicks by page group</p>
+          <div class="trio">
+            <div class="chart" data-chart="g-home" role="img" aria-label="Line chart: home page search clicks over 12 months, rising from 610 to 840."></div>
+            <div class="chart" data-chart="g-hubs" role="img" aria-label="Line chart: hub search clicks over 12 months, rising from 1,500 to 2,040."></div>
+            <div class="chart" data-chart="g-content" role="img" aria-label="Line chart: content hub search clicks over 12 months, falling from 820 to 650."></div>
+          </div>
+          <p class="dsec">GA4: organic sessions by page group</p>
+          <div class="tbl-wrap">
+            <table class="dt">
+              <thead><tr><th>Page group</th><th>Sessions</th><th>Change</th><th>Bounce rate</th><th>Change</th><th>Avg. session</th></tr></thead>
+              <tbody>
+                <tr><td>Guides</td><td>2,950</td><td><span class="delta good">▲ 6.1%</span></td><td>31.9%</td><td><span class="delta good">▼ 1.2 pts</span></td><td>01:49</td></tr>
+                <tr><td>Product pages</td><td>2,770</td><td><span class="delta good">▲ 1.6%</span></td><td>21.6%</td><td><span class="delta good">▼ 0.5 pts</span></td><td>02:11</td></tr>
+                <tr><td>Home</td><td>1,420</td><td><span class="delta bad">▼ 2.5%</span></td><td>15.9%</td><td><span class="delta bad">▲ 0.1 pts</span></td><td>01:19</td></tr>
+                <tr><td>Content hub</td><td>720</td><td><span class="delta bad">▼ 7.5%</span></td><td>30.8%</td><td><span class="delta good">▼ 4.2 pts</span></td><td>02:01</td></tr>
+                <tr><td>Member club</td><td>210</td><td><span class="delta bad">▼ 8.3%</span></td><td>6.2%</td><td><span class="delta good">▼ 2.3 pts</span></td><td>02:28</td></tr>
+                <tr><td>Other pages</td><td>7,090</td><td><span class="delta good">▲ 2.0%</span></td><td>28.6%</td><td><span class="delta good">▼ 0.4 pts</span></td><td>02:45</td></tr>
+                <tr><td><b>All pages</b></td><td><b>15,160</b></td><td><span class="delta good">▲ 1.6%</span></td><td><b>27.0%</b></td><td><span class="delta good">▼ 0.7 pts</span></td><td><b>02:29</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="duo">
+            <div class="chart">
+              <p class="chart-title">Visits referred by AI assistants</p>
+              <div class="tbl-wrap">
+                <table class="dt">
+                  <thead><tr><th>Landing page</th><th>Sessions</th><th>Bounce</th><th>Avg. session</th></tr></thead>
+                  <tbody>
+                    <tr><td>/ (home)</td><td>5</td><td>60%</td><td>00:04</td></tr>
+                    <tr><td>/range-gold</td><td>3</td><td>67%</td><td>00:00</td></tr>
+                    <tr><td>/campaign</td><td>2</td><td>0%</td><td>00:40</td></tr>
+                    <tr><td>/range-premium</td><td>2</td><td>50%</td><td>00:13</td></tr>
+                    <tr><td><b>All AI referrals</b></td><td><b>46</b></td><td><b>48%</b></td><td><b>02:59</b></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="chart">
+              <p class="chart-title">Keyword performance: one hub</p>
+              <div class="tbl-wrap">
+                <table class="dt">
+                  <thead><tr><th>Query</th><th>Impr.</th><th>Clicks</th><th>CTR</th><th>Position</th></tr></thead>
+                  <tbody>
+                    <tr><td>colic in babies</td><td>613</td><td>3</td><td>0.49%</td><td>3.9</td></tr>
+                    <tr><td>baby constipation</td><td>330</td><td>2</td><td>0.61%</td><td>7.5</td></tr>
+                    <tr><td>baby poo colours</td><td>288</td><td>0</td><td>0%</td><td>6.3</td></tr>
+                    <tr><td>colic remedies</td><td>272</td><td>5</td><td>1.84%</td><td>4.1</td></tr>
+                    <tr><td><b>Hub total</b></td><td><b>37,374</b></td><td><b>601</b></td><td><b>1.61%</b></td><td><b>6.8</b></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="dash t-plum" id="dash-global" aria-labelledby="d-global">
+        <div class="dash-head"><h3 id="d-global">Global websites</h3><span class="dash-meta">Aug – Oct</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Infant-nutrition brand <b>Product</b> Formula milk, websites in seven countries</p>
+          <p class="dash-from">From case study 3, "One dashboard for websites in seven countries"</p>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Country</span><span class="f">Channel</span><span class="f">Page type</span><span class="f">Currency</span><span class="f">Date range</span></div>
+          <ul class="steps" aria-label="Report sections"><li class="on">Catch</li><li class="on">Connect</li><li class="on">Convert</li><li class="on">Webshop</li><li class="on">Continue</li></ul>
+          <div class="kpis k4">
+            <div class="kpi"><span class="k-label">Users</span><b class="k-value">214,600</b><span class="delta good">▲ 5.2%</span></div>
+            <div class="kpi"><span class="k-label">Engaged sessions</span><b class="k-value">61%</b><span class="delta good">▲ 1.4 pts</span></div>
+            <div class="kpi"><span class="k-label">Sticky CTA clicks</span><b class="k-value">10,110</b><span class="delta good">▲ 6.4%</span></div>
+            <div class="kpi"><span class="k-label">Purchase rate</span><b class="k-value">1.8%</b><span class="delta good">▲ 0.2 pts</span></div>
+          </div>
+          <p class="dsec">Catch: monthly users by channel bucket</p>
+          <div class="chart" data-chart="h-channels" role="img" aria-label="Stacked columns: users by channel bucket for August, September and October. Paid brings the most users."></div>
+          <p class="dsec">Connect: users, engagement and scroll depth by market</p>
+          <div class="duo">
+            <div class="chart">
+              <div class="tbl-wrap">
+                <table class="dt">
+                  <thead><tr><th>Market</th><th>Users</th><th>Engaged</th><th>Purchase rate</th></tr></thead>
+                  <tbody>
+                    <tr><td>Market A</td><td class="barcell"><span class="inbar"><i style="width:100%"></i>58,200</span></td><td>63%</td><td>2.1%</td></tr>
+                    <tr><td>Market B</td><td class="barcell"><span class="inbar"><i style="width:71.6%"></i>41,700</span></td><td>58%</td><td>1.6%</td></tr>
+                    <tr><td>Market C</td><td class="barcell"><span class="inbar"><i style="width:63.4%"></i>36,900</span></td><td>61%</td><td>1.9%</td></tr>
+                    <tr><td>Market D</td><td class="barcell"><span class="inbar"><i style="width:50.5%"></i>29,400</span></td><td>55%</td><td>1.2%</td></tr>
+                    <tr><td>Market E</td><td class="barcell"><span class="inbar"><i style="width:39.2%"></i>22,800</span></td><td>66%</td><td>2.4%</td></tr>
+                    <tr><td>Market F</td><td class="barcell"><span class="inbar"><i style="width:26.3%"></i>15,300</span></td><td>59%</td><td>1.4%</td></tr>
+                    <tr><td>Market G</td><td class="barcell"><span class="inbar"><i style="width:17.7%"></i>10,300</span></td><td>62%</td><td>1.7%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="chart">
+              <p class="chart-title">Users reaching each scroll depth</p>
+              <div class="tbl-wrap">
+                <table class="dt heat">
+                  <thead><tr><th>Market</th><th>25%</th><th>50%</th><th>75%</th><th>90%</th></tr></thead>
+                  <tbody>
+                    <tr><td>Market A</td><td style="--a:42%">78%</td><td style="--a:28%">52%</td><td style="--a:17%">31%</td><td style="--a:10%">18%</td></tr>
+                    <tr><td>Market B</td><td style="--a:40%">74%</td><td style="--a:26%">49%</td><td style="--a:15%">28%</td><td style="--a:8%">15%</td></tr>
+                    <tr><td>Market C</td><td style="--a:44%">81%</td><td style="--a:31%">57%</td><td style="--a:19%">35%</td><td style="--a:11%">21%</td></tr>
+                    <tr><td>Market D</td><td style="--a:37%">69%</td><td style="--a:24%">44%</td><td style="--a:13%">24%</td><td style="--a:7%">12%</td></tr>
+                    <tr><td>Market E</td><td style="--a:45%">83%</td><td style="--a:32%">60%</td><td style="--a:21%">38%</td><td style="--a:13%">24%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="duo">
+            <div class="stack">
+              <p class="dsec">Convert: sticky CTA clicks by channel</p>
+              <div class="chart" data-chart="h-sticky" role="img" aria-label="Bars: sticky CTA clicks by channel. Paid search brings the most."></div>
+            </div>
+            <div class="stack">
+              <p class="dsec">Webshop: traffic by channel bucket</p>
+              <div class="tbl-wrap">
+                <table class="dt">
+                  <thead><tr><th>Bucket</th><th>Users</th><th>Purchases</th><th>Rate</th></tr></thead>
+                  <tbody>
+                    <tr><td>Paid</td><td>119,100</td><td>2,050</td><td>1.7%</td></tr>
+                    <tr><td>Owned</td><td>66,100</td><td>1,390</td><td>2.1%</td></tr>
+                    <tr><td>Earned</td><td>29,400</td><td>420</td><td>1.4%</td></tr>
+                    <tr><td><b>All</b></td><td><b>214,600</b></td><td><b>3,860</b></td><td><b>1.8%</b></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <p class="dsec">Continue: new vs returning users</p>
+          <div class="tbl-wrap">
+            <table class="dt">
+              <thead><tr><th>User type</th><th>Users</th><th>Engaged sessions</th><th>Revenue per user</th></tr></thead>
+              <tbody>
+                <tr><td>New</td><td>171,700</td><td>58%</td><td>0.42</td></tr>
+                <tr><td>Returning</td><td>42,900</td><td>71%</td><td>1.96</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="foot">Revenue per user is shown in each market's own currency, picked with the currency filter. A glossary page in the original defines every metric.</p>
+        </div>
+      </article>
+
+      <article class="dash t-rust" id="dash-scan" aria-labelledby="d-scan">
+        <div class="dash-head"><h3 id="d-scan">Pack-scan site</h3><span class="dash-meta">Last 12 weeks</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Infant-nutrition brand <b>Product</b> Pack-scan site in seven countries</p>
+          <p class="dash-from">From case study 3, "One dashboard for websites in seven countries"</p>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Country</span><span class="f">Product</span><span class="f">Date range</span></div>
+          <div class="kpis k4">
+            <div class="kpi"><span class="k-label">Total scans</span><b class="k-value">18,400</b><span class="delta good">▲ 9.1%</span></div>
+            <div class="kpi"><span class="k-label">Messaging-app scans</span><b class="k-value">12,827</b><span class="delta good">▲ 11.2%</span></div>
+            <div class="kpi"><span class="k-label">Other scans</span><b class="k-value">5,573</b><span class="delta good">▲ 4.6%</span></div>
+            <div class="kpi"><span class="k-label">Scan accuracy*</span><b class="k-value">98.9%</b><span class="delta bad">▼ 0.3 pts</span></div>
+          </div>
+          <div class="chart" data-chart="i-scans" role="img" aria-label="Line chart: weekly scans over 12 weeks, from a messaging app's in-app browser and from other browsers. Messaging-app scans are about twice the rest."></div>
+          <div class="trio">
+            <div class="chart" data-chart="i-market" role="img" aria-label="Bars: scans by market. Market A has the most scans."></div>
+            <div class="chart" data-chart="i-tier" role="img" aria-label="Bars: scans by city tier in one market. Tier 1 cities bring 46 percent."></div>
+            <div class="chart" data-chart="i-errors" role="img" aria-label="Bars: scan errors by type. Unrecognised codes are the most common error."></div>
+          </div>
+          <div class="chart">
+            <p class="chart-title">Product breakdown</p>
+            <div class="tbl-wrap">
+              <table class="dt">
+                <thead><tr><th>Product</th><th>Scans</th><th>Share</th><th>Errors</th></tr></thead>
+                <tbody>
+                  <tr><td>Product A, stage 3</td><td>2,130</td><td>11.6%</td><td>21</td></tr>
+                  <tr><td>Product B, stage 2</td><td>1,860</td><td>10.1%</td><td>18</td></tr>
+                  <tr><td>Product C, stage 1</td><td>1,740</td><td>9.5%</td><td>24</td></tr>
+                  <tr><td>Product D, stage 3</td><td>1,290</td><td>7.0%</td><td>11</td></tr>
+                  <tr><td>Other products</td><td>11,380</td><td>61.8%</td><td>136</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p class="foot">*Scan accuracy = 1 − scan errors ÷ scans. 210 errors in 18,400 scans.</p>
+        </div>
+      </article>
+
+      </div>
+    </div>
+
+    <div class="dash-group">
+      <h3 class="group-title">Banking <span>· digital campaigns</span></h3>
+      <div class="dashes">
+
+      <article class="dash t-petrol" id="dash-bank-spend" aria-labelledby="d-bank-spend">
+        <div class="dash-head"><h3 id="d-bank-spend">Search and display spend</h3><span class="dash-meta">Last 12 weeks</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Bank <b>Product</b> Search and display campaigns <b>Data</b> Datorama, BigQuery</p>
+          <p class="dash-from">From case study 7, "Bank campaigns, from many platforms to one view"</p>
+          <ul class="steps" aria-label="Report pages"><li class="on">Overview</li><li>Search</li><li>Display</li></ul>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Date</span><span class="f">Site</span><span class="f">Month</span><span class="f">Week</span></div>
+          <p class="dsec">Performance summary</p>
+          <div class="tbl-wrap">
+            <table class="dt">
+              <thead><tr><th>Cost</th><th>Impr.</th><th>Clicks</th><th>CTR</th><th>CPC</th><th>CPM</th><th>Product page</th><th>Form start</th><th>Details</th><th>Submitted</th><th>CVR</th></tr></thead>
+              <tbody><tr><td>$215,800</td><td>6.52M</td><td>41,730</td><td>0.64%</td><td>$5.17</td><td>$33.10</td><td>23,280</td><td>20,300</td><td>3,580</td><td>2,410</td><td>5.78%</td></tr></tbody>
+            </table>
+          </div>
+          <div class="chart">
+            <p class="chart-title">Application form steps, and cost per step</p>
+            <div class="funnel">
+              <span class="fl">Product page views</span><span class="ft"><i style="width:100%"></i></span><span class="fv">23,280</span><span class="fc">$9.27</span>
+              <span class="fl">Form started</span><span class="ft"><i style="width:87.2%"></i></span><span class="fv">20,300</span><span class="fc">$10.63</span>
+              <span class="fl">Details completed</span><span class="ft"><i style="width:15.4%"></i></span><span class="fv">3,580</span><span class="fc">$60.28</span>
+              <span class="fl">Submitted</span><span class="ft"><i style="width:10.4%"></i></span><span class="fv">2,410</span><span class="fc">$89.54</span>
+            </div>
+          </div>
+          <p class="dsec">Spends</p>
+          <div class="duo">
+            <div class="chart" data-chart="j-site" role="img" aria-label="Bars: display spend per site. The video site costs the most."></div>
+            <div class="chart" data-chart="j-channel" role="img" aria-label="Spend per channel: search 62%, display 38%."></div>
+          </div>
+          <div class="chart" data-chart="j-spend" role="img" aria-label="Line chart: spend over time by week, between about $15,000 and $21,400."></div>
+          <div class="kpis k4">
+            <div class="kpi"><span class="k-label">CPC</span><b class="k-value">$5.17</b><span class="delta good">▼ 4.4%</span></div>
+            <div class="kpi"><span class="k-label">Cost per form start</span><b class="k-value">$10.63</b><span class="delta good">▼ 1.3%</span></div>
+            <div class="kpi"><span class="k-label">Cost per details step</span><b class="k-value">$60.28</b><span class="delta bad">▲ 2.2%</span></div>
+            <div class="kpi"><span class="k-label">Cost per submitted form</span><b class="k-value">$89.54</b><span class="delta good">▼ 4.8%</span></div>
+          </div>
+          <div class="chart">
+            <p class="chart-title">What the numbers say</p>
+            <ul class="insights">
+              <li>The video site was the most expensive display site, with a total cost of $31,200, 38% of display spend.</li>
+              <li>12% of started forms were submitted, at $89.54 per submitted form.</li>
+              <li>Search took 62% of spend.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="dash t-red" id="dash-bank-search" aria-labelledby="d-bank-search">
+        <div class="dash-head"><h3 id="d-bank-search">Search campaign report</h3><span class="dash-meta">Last 30 days</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Bank <b>Product</b> Search campaigns <b>Data</b> Datorama, BigQuery</p>
+          <p class="dash-from">From case study 7, "Bank campaigns, from many platforms to one view"</p>
+          <ul class="steps" aria-label="Report pages"><li class="on">Overview</li><li>Monthly breakdown</li><li>Weekly breakdown</li><li>Product breakdown</li><li>Ads breakdown</li></ul>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Search engine</span><span class="f">Campaign cluster</span><span class="f">Product</span><span class="f">Date range</span></div>
+          <p class="dsec">Impressions and clicks</p>
+          <div class="kpis k5">
+            <div class="kpi"><span class="k-label">Impressions</span><b class="k-value">1,151,900</b><span class="delta good">▲ 5.8%</span></div>
+            <div class="kpi"><span class="k-label">Clicks</span><b class="k-value">18,250</b><span class="delta good">▲ 3.4%</span></div>
+            <div class="kpi"><span class="k-label">CTR</span><b class="k-value">1.58%</b><span class="delta bad">▼ 0.04 pts</span></div>
+            <div class="kpi"><span class="k-label">CPC</span><b class="k-value">$4.91</b><span class="delta bad">▲ 2.1%</span></div>
+            <div class="kpi"><span class="k-label">Cost</span><b class="k-value">$89,590</b><span class="delta bad">▲ 5.6%</span></div>
+          </div>
+          <div class="duo">
+            <div class="chart" data-chart="k-clicks" role="img" aria-label="Line chart: clicks by day over 30 days, mostly 450 to 790 a day, lower at weekends."></div>
+            <div class="chart" data-chart="k-products" role="img" aria-label="Bars: product ranking by lead forms. Product A brings the most leads."></div>
+          </div>
+          <p class="dsec">Conversion tags</p>
+          <div class="kpis k5">
+            <div class="kpi"><span class="k-label">50% page views</span><b class="k-value">16,530</b><span class="delta good">▲ 7.1%</span></div>
+            <div class="kpi"><span class="k-label">Brochure downloads</span><b class="k-value">2,920</b><span class="delta good">▲ 0.7%</span></div>
+            <div class="kpi"><span class="k-label">Lead forms</span><b class="k-value">55</b><span class="delta good">▲ 5.8%</span></div>
+            <div class="kpi"><span class="k-label">Applications</span><b class="k-value">48</b><span class="delta good">▲ 4.3%</span></div>
+            <div class="kpi"><span class="k-label">Cost per download</span><b class="k-value">$30.68</b><span class="delta bad">▲ 4.9%</span></div>
+          </div>
+          <div class="duo">
+            <div class="chart" data-chart="k-tags" role="img" aria-label="Line chart: 50% page views and brochure downloads by day over 30 days."></div>
+            <div class="chart" data-chart="k-keywords" role="img" aria-label="Bars: top keyword groups by clicks. Brand terms bring the most clicks."></div>
+          </div>
+          <div class="chart">
+            <p class="chart-title">Overall and individual campaign performance</p>
+            <div class="tbl-wrap">
+              <table class="dt">
+                <thead><tr><th>Campaign</th><th>Engine</th><th>Impr.</th><th>Clicks</th><th>CTR</th><th>CPC</th><th>Cost</th><th>Downloads</th><th>Leads</th></tr></thead>
+                <tbody>
+                  <tr><td>Brand search</td><td>Google</td><td>149,800</td><td>9,140</td><td>6.1%</td><td>$1.92</td><td>$17,550</td><td>1,390</td><td>24</td></tr>
+                  <tr><td>Product search</td><td>Google</td><td>274,200</td><td>5,210</td><td>1.9%</td><td>$6.10</td><td>$31,780</td><td>910</td><td>19</td></tr>
+                  <tr><td>Generic search</td><td>Google</td><td>292,200</td><td>2,630</td><td>0.9%</td><td>$8.40</td><td>$22,090</td><td>420</td><td>8</td></tr>
+                  <tr><td>Competitor terms</td><td>Bing</td><td>435,700</td><td>1,270</td><td>0.3%</td><td>$14.31</td><td>$18,170</td><td>200</td><td>4</td></tr>
+                  <tr><td><b>All campaigns</b></td><td></td><td><b>1,151,900</b></td><td><b>18,250</b></td><td><b>1.58%</b></td><td><b>$4.91</b></td><td><b>$89,590</b></td><td><b>2,920</b></td><td><b>55</b></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="dash t-pink" id="dash-bank-overview" aria-labelledby="d-bank-overview">
+        <div class="dash-head"><h3 id="d-bank-overview">Paid media overview</h3><span class="dash-meta">Jul – Dec · vs Jan – Jun</span><span class="sample">Sample data</span></div>
+        <div class="dash-body">
+          <p class="dash-for"><b>Account</b> Bank <b>Product</b> Website and paid media <b>Data</b> Datorama, BigQuery</p>
+          <p class="dash-from">From case study 7, "Bank campaigns, from many platforms to one view"</p>
+          <ul class="steps" aria-label="Report pages"><li class="on">Overview</li><li>Channel</li></ul>
+          <div class="filters" aria-label="Filters in the original"><span class="f-label">Filters</span><span class="f">Campaign</span><span class="f">Channel</span><span class="f">Division</span><span class="f">Month</span></div>
+          <div class="duo">
+            <div class="stack">
+              <p class="dsec">Traffic</p>
+              <div class="kpis k4">
+                <div class="kpi"><span class="k-label">Page views</span><b class="k-value">402,800</b><span class="delta good">▲ 7.5%</span></div>
+                <div class="kpi"><span class="k-label">Sessions</span><b class="k-value">140,000</b><span class="delta good">▲ 7.3%</span></div>
+                <div class="kpi"><span class="k-label">Bounce rate</span><b class="k-value">60.4%</b><span class="delta bad">▲ 6.6 pts</span></div>
+                <div class="kpi"><span class="k-label">Avg. session</span><b class="k-value">04:12</b><span class="delta bad">▼ 8.1%</span></div>
+              </div>
+              <div class="chart" data-chart="l-traffic" role="img" aria-label="Line chart: sessions and page views by month, July to December, highest in November."></div>
+              <div class="kpis k4">
+                <div class="kpi"><span class="k-label">Impressions</span><b class="k-value">11.9M</b><span class="delta good">▲ 6.3%</span></div>
+                <div class="kpi"><span class="k-label">Clicks</span><b class="k-value">147,526</b><span class="delta good">▲ 6.7%</span></div>
+                <div class="kpi"><span class="k-label">CTR</span><b class="k-value">1.24%</b><span class="delta good">▲ 0.01 pts</span></div>
+                <div class="kpi"><span class="k-label">CPC</span><b class="k-value">$1.27</b><span class="delta good">▼ 0.8%</span></div>
+              </div>
+              <div class="chart" data-chart="l-clicks" role="img" aria-label="Columns: clicks by month, July to December, highest in November."></div>
+            </div>
+            <div class="stack">
+              <p class="dsec">Spends and conversion</p>
+              <div class="kpis">
+                <div class="kpi"><span class="k-label">Revenue</span><b class="k-value">$153,070</b><span class="delta good">▲ 9.2%</span></div>
+                <div class="kpi"><span class="k-label">Total cost</span><b class="k-value">$187,210</b><span class="delta bad">▲ 7.3%</span></div>
+                <div class="kpi"><span class="k-label">Adds to cart</span><b class="k-value">956</b><span class="delta good">▲ 8.6%</span></div>
+                <div class="kpi"><span class="k-label">Add-to-cart rate</span><b class="k-value">0.65%</b><span class="delta good">▲ 0.01 pts</span></div>
+                <div class="kpi"><span class="k-label">Purchases</span><b class="k-value">474</b><span class="delta good">▲ 9.0%</span></div>
+                <div class="kpi"><span class="k-label">CPA</span><b class="k-value">$394.96</b><span class="delta good">▼ 1.6%</span></div>
+              </div>
+              <div class="chart" data-chart="l-platform" role="img" aria-label="Bars: cost per platform. Google Search costs the most."></div>
+              <div class="chart" data-chart="l-revenue" role="img" aria-label="Columns: revenue by month, July to December, highest in November."></div>
+              <div class="chart" data-chart="l-cart" role="img" aria-label="Line chart: adds to cart and purchases by month, both rising to a November peak."></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      </div>
+    </div>
+
+    </div>
+  </section>
+
+  <section class="page-break" aria-labelledby="deck">
+    <h2 id="deck">Sample deck: quarterly community report</h2>
+    <p class="intro">A recreation of the quarterly report from case study 9, the synthesized analysis of liver-health Facebook groups. Six slides, with sample data and no member names.</p>
+    <div class="deck t-olive">
+
+      <article class="slide slide-title" aria-label="Slide 1">
+        <div class="slide-body">
+          <p class="label">Quarterly report · Q3 · Sample data</p>
+          <h3>What members said in the liver-health Facebook groups</h3>
+          <p>A synthesized analysis of 8,568 member posts and comments</p>
+        </div>
+        <p class="slide-foot"><span>Pharmaceutical company · Liver-health Facebook groups</span><span>1</span></p>
+      </article>
+
+      <article class="slide" aria-label="Slide 2: Summary">
+        <p class="slide-head">Summary</p>
+        <div class="slide-body">
+          <ul class="big-points">
+            <li><b>25%</b><span>of posts and comments are about community support, the top theme.</span></li>
+            <li><b>34%</b><span>ask for advice, more than any other behaviour.</span></li>
+            <li><b>24</b><span>top voices lead most conversations.</span></li>
+            <li><b>16%</b><span>of active members are ready to ask a doctor, up 3 points.</span></li>
+          </ul>
+        </div>
+        <p class="slide-foot"><span>Q3 · Sample data</span><span>2</span></p>
+      </article>
+
+      <article class="slide" aria-label="Slide 3: Method">
+        <p class="slide-head">Method: AI text classification</p>
+        <div class="slide-body">
+          <p>Thousands of rows were classified with our work AI tool, a large language model. Every row got the same prompt and answered in the same JSON format, so the coding stayed uniform.</p>
+<pre class="prompt">Read this post or comment from a
+liver-health support group.
+Return JSON with:
+- theme: community support | lifestyle |
+  diagnosis and tests | treatment
+  questions | symptoms | other
+- behaviour: asking for advice | sharing
+  an experience | offering support |
+  sharing resources | venting | other
+- readiness: just joined | learning |
+  considering treatment | ready to
+  ask a doctor</pre>
+          <p class="foot">Rewritten example, not the original prompt.</p>
+        </div>
+        <p class="slide-foot"><span>Q3 · Sample data</span><span>3</span></p>
+      </article>
+
+      <article class="slide" aria-label="Slide 4: Themes and behaviours">
+        <p class="slide-head">What members talk about, and how</p>
+        <div class="slide-body">
+          <div class="duo">
+            <div class="chart" data-chart="deck-themes" role="img" aria-label="Bars: themes in posts and comments. Community support comes up most, then lifestyle."></div>
+            <div class="chart" data-chart="deck-behaviours" role="img" aria-label="Bars: behaviours as a share of posts and comments. Asking for advice is 34 percent."></div>
+          </div>
+        </div>
+        <p class="slide-foot"><span>Q3 · Sample data</span><span>4</span></p>
+      </article>
+
+      <article class="slide" aria-label="Slide 5: Top voices">
+        <p class="slide-head">Top voices</p>
+        <div class="slide-body">
+          <div class="tbl-wrap">
+            <table class="dt">
+              <thead><tr><th>Member</th><th>Posts</th><th>Comments</th><th>Main theme</th></tr></thead>
+              <tbody>
+                <tr><td>Member A</td><td>38</td><td>412</td><td>Community support</td></tr>
+                <tr><td>Member B</td><td>31</td><td>356</td><td>Lifestyle</td></tr>
+                <tr><td>Member C</td><td>27</td><td>298</td><td>Treatment questions</td></tr>
+                <tr><td>Member D</td><td>22</td><td>264</td><td>Community support</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Most of them share their own experience and answer others' questions.</p>
+        </div>
+        <p class="slide-foot"><span>Q3 · Sample data</span><span>5</span></p>
+      </article>
+
+      <article class="slide" aria-label="Slide 6: Treatment readiness and next steps">
+        <p class="slide-head">Is the community treatment-ready?</p>
+        <div class="slide-body">
+          <div class="chart" data-chart="deck-ready" role="img" aria-label="Treatment readiness of active members: just joined 22%, learning 38%, considering treatment 24%, ready to ask a doctor 16%."></div>
+          <p class="chart-title">Next quarter</p>
+          <ul class="insights">
+            <li>Plan admin posts around community support and lifestyle.</li>
+            <li>Invite top voices to share their experience.</li>
+            <li>Answer treatment questions in a live specialist session.</li>
+          </ul>
+        </div>
+        <p class="slide-foot"><span>Q3 · Sample data</span><span>6</span></p>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="page-break" aria-labelledby="ga4">
+    <h2 id="ga4">GA4 event tracking</h2>
+    <p class="intro">A developer sets up the tags in Google Tag Manager. My part is deciding what to track and making it reportable: I keep the list of event and click names on each website, register custom parameters in GA4, and build the dashboards on them.</p>
+    <ol class="pipeline three">
+      <li class="stage">
+        <p class="label">1 · Map the events</p>
+        <h3>Every event and click name, and what it means</h3>
+        <ul class="tags"><li>Event names</li><li>Click names</li><li>Key actions</li><li>Conversions</li></ul>
+      </li>
+      <li class="stage">
+        <p class="label">2 · Custom parameters</p>
+        <h3>Register the details as custom dimensions</h3>
+        <ul class="tags"><li>Survey answers</li><li>CTA names</li><li>Page types</li><li>File names</li></ul>
+      </li>
+      <li class="stage">
+        <p class="label">3 · Report</p>
+        <h3>Build the dashboard on events and their parameters</h3>
+        <ul class="tags"><li>Looker Studio</li><li>Answers by option</li><li>Clicks by CTA</li><li>Rates by stage</li></ul>
+      </li>
+    </ol>
+    <article class="dash" aria-labelledby="ga4-plan">
+      <div class="dash-head"><h3 id="ga4-plan">Tracking plan</h3><span class="sample">Sample data</span></div>
+      <div class="dash-body">
+        <div class="chart">
+          <p class="chart-title">Events, their parameters, and where they're reported</p>
+          <div class="tbl-wrap">
+            <table class="dt plan">
+              <thead><tr><th>Event</th><th>Fires when</th><th>Parameters</th><th>Reported as</th></tr></thead>
+              <tbody>
+                <tr><td><code>poll_submit</code></td><td>A visitor answers a survey question</td><td><code>poll_question</code>, <code>poll_answer</code></td><td>Answers by option</td></tr>
+                <tr><td><code>cta_click</code></td><td>A visitor clicks a call to action</td><td><code>cta_name</code>, <code>page_type</code></td><td>Clicks and click-through by CTA</td></tr>
+                <tr><td><code>file_download</code></td><td>A visitor downloads a guide</td><td><code>file_name</code></td><td>Key actions by journey stage</td></tr>
+                <tr><td><code>video_progress</code></td><td>A video reaches 25, 50 or 75%</td><td><code>video_title</code>, <code>video_percent</code></td><td>Viewing depth by video</td></tr>
+                <tr><td><code>finder_search</code></td><td>A visitor uses the location finder</td><td><code>search_type</code></td><td>Searches by type</td></tr>
+                <tr><td><code>form_submit</code></td><td>A visitor signs up</td><td><code>form_name</code></td><td>Sign-ups by form</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="dash" aria-labelledby="ga4-defs">
+      <div class="dash-head"><h3 id="ga4-defs">Custom dimensions in GA4</h3><span class="dash-meta">Admin › Data display › Custom definitions</span><span class="sample">Sample data</span></div>
+      <div class="dash-body">
+        <div class="plan-grid">
+          <div class="chart">
+            <p class="chart-title">Custom dimensions registered from event parameters</p>
+            <div class="tbl-wrap">
+              <table class="dt plan">
+                <thead><tr><th>Dimension name</th><th>Scope</th><th>Event parameter</th><th>Used for</th></tr></thead>
+                <tbody>
+                  <tr><td>Poll question</td><td>Event</td><td><code>poll_question</code></td><td>Which question was answered</td></tr>
+                  <tr><td>Poll answer</td><td>Event</td><td><code>poll_answer</code></td><td>Survey answers by option</td></tr>
+                  <tr><td>CTA name</td><td>Event</td><td><code>cta_name</code></td><td>Clicks by call to action</td></tr>
+                  <tr><td>Page type</td><td>Event</td><td><code>page_type</code></td><td>Product pages vs other pages</td></tr>
+                  <tr><td>File name</td><td>Event</td><td><code>file_name</code></td><td>Downloads by guide</td></tr>
+                  <tr><td>Video title</td><td>Event</td><td><code>video_title</code></td><td>Viewing depth by video</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="chart">
+            <p class="chart-title">How I register one</p>
+            <ol class="setup">
+              <li>Check the parameter arrives with its event in GA4.</li>
+              <li>Open Admin › Data display › Custom definitions, then Create custom dimension.</li>
+              <li>Give it a readable name, set the scope to Event, and enter the parameter name exactly as it's sent, such as <code>poll_answer</code>.</li>
+              <li>Save, then use the new dimension in reports and Looker Studio.</li>
+            </ol>
+            <p class="foot">GA4 fills a custom dimension only from the day it's created, so a parameter needs registering before its data is needed.</p>
+          </div>
+        </div>
+        <div class="chart" data-chart="ga-answers" role="img" aria-label="Bars: answers to the sample survey question How useful was this page. Very useful leads with 412 answers."></div>
+        <p class="foot">The <code>poll_answer</code> dimension in use: answers by option.</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="page-break" aria-labelledby="code">
+    <h2 id="code">SQL and code</h2>
+    <p class="intro">Short generic examples of the patterns behind the case studies, written for this page. Client code isn't copied, and table names are made up.</p>
+    <div class="snippets">
+
+      <div class="snippet">
+        <p class="label">Python · AWS Lambda</p>
+        <h3>Load each report as it arrives</h3>
+        <p>A file landing in S3 starts the function. It finds the report type from the file name, loads the rows, then moves the file out of the inbox.</p>
+<pre><code>import io, os, boto3
+import pandas as pd
+from urllib.parse import unquote_plus
+from sqlalchemy import create_engine
+
+s3 = boto3.client("s3")
+db = create_engine(os.environ["DB_URL"])
+TABLES = {"business-report": "sales",
+          "sp-ads": "ads_sp",
+          "inventory": "inventory"}
+
+def handler(event, context):
+    rec = event["Records"][0]["s3"]
+    bucket = rec["bucket"]["name"]
+    key = unquote_plus(rec["object"]["key"])
+    table = next(TABLES[k] for k in TABLES
+                 if k in key)
+    obj = s3.get_object(Bucket=bucket,
+                        Key=key)
+    df = pd.read_csv(io.BytesIO(
+        obj["Body"].read()))
+    df.to_sql(table, db, schema="raw",
+              if_exists="append",
+              index=False)
+    <span class="c"># Move the file: raw/ to done/</span>
+    s3.copy_object(Bucket=bucket,
+        Key=key.replace("raw/", "done/"),
+        CopySource=f"{bucket}/{key}")
+    s3.delete_object(Bucket=bucket, Key=key)</code></pre>
+      </div>
+
+      <div class="snippet">
+        <p class="label">SQL · PostgreSQL</p>
+        <h3>Copy only new rows, then move the bookmark</h3>
+        <p>The sync reads where it stopped last time, loads only rows added since, and moves its bookmark no further than the rows it just loaded.</p>
+<pre><code><span class="c">-- Runs in one transaction</span>
+create temp table new_rows
+  on commit drop as
+select s.*
+from staging.search_terms s
+where s.loaded_at &gt; (
+  select last_loaded_at
+  from sync_state
+  where source = 'search_terms');
+
+insert into mart.search_terms_weekly
+  (week_start, product_id, term,
+   impressions, clicks, purchases)
+select week_start, product_id, term,
+       impressions, clicks, purchases
+from new_rows
+where week_end - week_start &lt;= 6;
+
+update sync_state
+set last_loaded_at = coalesce(
+  (select max(loaded_at) from new_rows),
+  last_loaded_at)
+where source = 'search_terms';</code></pre>
+      </div>
+
+      <div class="snippet">
+        <p class="label">SQL · BigQuery</p>
+        <h3>One daily table across ad platforms</h3>
+        <p>Each platform names its columns differently. One model lines them up, so every dashboard reads the same table.</p>
+<pre><code><span class="c">-- One row per day, channel, campaign</span>
+create or replace table mart.daily_ads
+partition by date as
+select date, 'Search' as channel,
+       campaign, cost, clicks,
+       conversions
+from raw.search_ads
+union all
+select date, 'Social', campaign_name,
+       spend, link_clicks, purchases
+from raw.social_ads;
+
+<span class="c">-- Cost per conversion by week</span>
+select date_trunc(date, week) as week,
+       channel,
+       safe_divide(sum(cost),
+                   sum(conversions)) as cpa
+from mart.daily_ads
+group by week, channel
+order by week, channel;</code></pre>
+      </div>
+
+      <div class="snippet">
+        <p class="label">SQL · Snowflake</p>
+        <h3>Mirror shared data on a schedule, then check it</h3>
+        <p>A data provider shares Amazon seller data with us in Snowflake. A scheduled task copies it into our own tables, and a count checks the copy matches its source. The PostgreSQL sync then moves new rows to AWS.</p>
+<pre><code><span class="c">-- Refresh our mirror of the shared table</span>
+create or replace task refresh_daily_mirror
+  warehouse = reporting_wh
+  schedule = 'USING CRON 0 6 * * * UTC'
+as
+  create or replace table
+    mirror.daily_sales as
+  select * from shared.amazon.daily_sales;
+
+<span class="c">-- Tasks start paused</span>
+alter task refresh_daily_mirror resume;
+
+<span class="c">-- The mirror must match its source</span>
+select 'mirror' as tbl, count(*) as n
+from mirror.daily_sales
+union all
+select 'source', count(*)
+from shared.amazon.daily_sales;</code></pre>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="keep" aria-labelledby="how">
+    <h2 id="how">How I work</h2>
+    <ol class="flow">
+      <li><span class="step">1</span><b>Start from the question</b><span class="txt">I turn the business ask into the metrics, filters and time periods the report needs.</span></li>
+      <li><span class="step">2</span><b>Check the tracking</b><span class="txt">I list the events, tags and conversions each metric needs, and check they fire in GA4 before I build on them.</span></li>
+      <li><span class="step">3</span><b>Land the raw data</b><span class="txt">Scheduled jobs pull each source into S3 or the warehouse and keep the original files.</span></li>
+      <li><span class="step">4</span><b>Model it with SQL</b><span class="txt">I clean, join and aggregate into tables at the grain the report needs, such as one row per product per day.</span></li>
+      <li><span class="step">5</span><b>Test before it ships</b><span class="txt">I run new jobs on a test copy first, then check that required files are present, nothing is counted twice, and row counts and totals match the source.</span></li>
+      <li><span class="step">6</span><b>Design the dashboard</b><span class="txt">Summary numbers first, then trends, then detail tables, with every metric defined on the page.</span></li>
+      <li><span class="step">7</span><b>Report what changed</b><span class="txt">Monthly and quarterly decks: what moved, why, and what to try next.</span></li>
+    </ol>
+  </section>
+
+  <section class="keep" aria-labelledby="skills">
+    <h2 id="skills">Tools and skills</h2>
+    <div class="skillset">
+      <div class="skill-col"><p class="label">SQL and modelling</p><ul class="tags"><li>BigQuery</li><li>Snowflake</li><li>PostgreSQL</li><li>Joins and window functions</li><li>Data models</li><li>Incremental loads</li><li>Data-quality checks</li></ul></div>
+      <div class="skill-col"><p class="label">Pipelines and cloud</p><ul class="tags"><li>AWS S3</li><li>Lambda</li><li>EventBridge</li><li>EC2</li><li>RDS</li><li>CloudWatch</li><li>SSH tunnels</li><li>Snowflake tasks</li><li>Python</li><li>pandas</li><li>boto3</li><li>Datorama</li><li>Google Apps Script</li></ul></div>
+      <div class="skill-col"><p class="label">Dashboards</p><ul class="tags"><li>Looker Studio</li><li>Power BI</li><li>Lovable</li><li>KPI design</li><li>Metric glossaries</li></ul></div>
+      <div class="skill-col"><p class="label">Web and marketing data</p><ul class="tags"><li>GA4</li><li>GTM</li><li>Search Console</li><li>Events and conversions</li><li>Custom dimensions</li><li>UTM tracking</li><li>Google Ads</li><li>Bing Ads</li><li>Meta and TikTok ads</li><li>YouTube</li><li>Amazon seller reports</li></ul></div>
+      <div class="skill-col"><p class="label">Analysis and reporting</p><ul class="tags"><li>Funnels and journeys</li><li>Campaign performance</li><li>SEO</li><li>Social media and sentiment</li><li>Executive summaries</li><li>Insight decks</li><li>Community analysis</li><li>AI text classification (LLM)</li><li>Prompt design</li></ul></div>
+    </div>
+  </section>
+
+  <footer>
+    Client, brand and colleague names and all business figures are left out. The dashboards are recreations with sample data, and the code is rewritten, not copied.
+  </footer>
+
+</div>
+
+<script>
+(() => {
+  const N = v => v.toLocaleString('en-US');
+  const short = v => v >= 1000 ? (+(v / 1000).toFixed(1)) + 'k' : String(v);
+  const pct = v => v.toFixed(1) + '%';
+  const scale = (max, count) => {
+    const raw = max / count, mag = 10 ** Math.floor(Math.log10(raw)), n = raw / mag;
+    const step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * mag;
+    const top = Math.ceil(max / step) * step, ticks = [];
+    for (let t = 0; t <= top + step / 1000; t += step) ticks.push(+t.toFixed(6));
+    return { top, ticks };
+  };
+
+  const tip = document.createElement('div');
+  tip.className = 'tip'; tip.hidden = true; tip.setAttribute('role', 'status');
+  document.body.appendChild(tip);
+  const showTip = (e, html) => {
+    tip.innerHTML = html; tip.hidden = false;
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = e.clientX + 14, y = e.clientY + 14;
+    if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+    if (y + h > innerHeight - 8) y = e.clientY - h - 14;
+    tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+  };
+  const hideTip = () => { tip.hidden = true; };
+  const themeTip = el => { const d = el.closest('.dash'); if (!d) return; const cs = getComputedStyle(d);
+    ['--s1', '--s2', '--s3', '--s4'].forEach(v => tip.style.setProperty(v, cs.getPropertyValue(v))); };
+  const tipRow = (s, v, fmt) => `<span class="tr"><i class="sw ${s.c}"></i>${s.name}<b>${fmt(v)}</b></span>`;
+
+  const head = o => `<p class="chart-title">${o.title}</p>` + (o.series && o.series.length > 1
+    ? `<div class="legend">${o.series.map(s => `<span><i class="sw ${s.c}"></i>${s.name}</span>`).join('')}</div>` : '');
+
+  // Shared frame: y labels, gridlines, x labels. pos(i) gives each label's left edge in %.
+  const frame = (o, top, ticks, inner, pos) => {
+    const y = ticks.map(t => `<span style="bottom:${t / top * 100}%">${short(t)}</span>`).join('');
+    const g = ticks.slice(1).map(t => `<i class="gl" style="bottom:${t / top * 100}%"></i>`).join('');
+    const n = o.labels.length, every = o.every || 1;
+    const x = o.labels.map((l, i) => {
+      if (i % every && i !== n - 1) return '';
+      if (i !== n - 1 && n - 1 - i < every / 2) return '';
+      const cls = o.edge && i === 0 ? 'first' : o.edge && i === n - 1 ? 'last' : '';
+      return `<span class="${cls}" style="left:${pos(i)}%">${l}</span>`;
+    }).join('');
+    return `<div class="plotwrap"><div class="yaxis">${y}</div><div class="plot" style="height:${o.h || 140}px">${g}${inner}<i class="xhair" hidden></i></div></div><div class="xaxis">${x}</div>`;
+  };
+
+  const hover = (el, n, pos, slot, html) => {
+    const plot = el.querySelector('.plot'), xh = plot.querySelector('.xhair');
+    plot.addEventListener('pointermove', e => {
+      const r = plot.getBoundingClientRect(), f = (e.clientX - r.left) / r.width;
+      const i = Math.max(0, Math.min(n - 1, slot ? Math.floor(f * n) : Math.round(f * (n - 1))));
+      xh.style.left = pos(i) + '%'; xh.hidden = false;
+      themeTip(el); showTip(e, html(i));
+    });
+    plot.addEventListener('pointerleave', () => { xh.hidden = true; hideTip(); });
+  };
+
+  function line(el, o) {
+    const n = o.labels.length, fmt = o.fmt || N;
+    const { top, ticks } = scale(Math.max(...o.series.flatMap(s => s.v)), o.ticks || 3);
+    const X = i => i / (n - 1) * 100, Y = v => 100 - v / top * 100;
+    let svg = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">', dots = '';
+    o.series.forEach(s => {
+      const d = s.v.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(2)} ${Y(v).toFixed(2)}`).join(' ');
+      if (o.area) svg += `<path class="ar ${s.c}" d="${d} L100 100 L0 100 Z"/>`;
+      svg += `<path class="ln ${s.c}" d="${d}"/>`;
+      dots += `<i class="dot ${s.c}" style="left:${X(n - 1)}%;bottom:${100 - Y(s.v[n - 1])}%"></i>`;
+    });
+    el.innerHTML = head(o) + frame({ ...o, edge: true }, top, ticks, svg + '</svg>' + dots, X);
+    hover(el, n, X, false, i => `<b>${o.labels[i]}</b>` + o.series.map(s => tipRow(s, s.v[i], fmt)).join(''));
+  }
+
+  function cols(el, o) {
+    const n = o.labels.length, fmt = o.fmt || N;
+    const tot = o.labels.map((_, i) => o.series.reduce((a, s) => a + s.v[i], 0));
+    const { top, ticks } = scale(Math.max(...tot), o.ticks || 3);
+    const X = i => (i + 0.5) / n * 100;
+    const bars = tot.map((t, i) => `<div class="col" style="height:${t / top * 100}%">` +
+      o.series.filter(s => s.v[i] > 0).map(s => `<i class="seg ${s.c}" style="flex-grow:${s.v[i]}"></i>`).join('') + '</div>').join('');
+    el.innerHTML = head(o) + frame(o, top, ticks, `<div class="cols" style="grid-template-columns:repeat(${n},minmax(0,1fr))">${bars}</div>`, X);
+    hover(el, n, X, true, i => `<b>${o.tipLabel ? o.tipLabel(i) : o.labels[i]}</b>` +
+      o.series.map(s => tipRow(s, s.v[i], fmt)).join('') +
+      (o.series.length > 1 ? `<span class="tr"><i></i>Total<b>${fmt(tot[i])}</b></span>` : ''));
+  }
+
+  function hbars(el, o) {
+    const max = Math.max(...o.rows.map(r => r[1])), fmt = o.fmt || N;
+    el.innerHTML = head(o) + '<div class="hb">' + o.rows.map(([l, v]) =>
+      `<span class="hb-l">${l}</span><span class="hb-t"><i class="${o.c || 'c1'}" style="width:${v / max * 100}%"></i></span><span class="hb-v">${fmt(v)}</span>`).join('') + '</div>';
+  }
+
+  function segbar(el, o) {
+    const tot = o.parts.reduce((a, p) => a + p.v, 0);
+    el.innerHTML = head({ title: o.title }) +
+      `<div class="segbar">${o.parts.map(p => `<i class="seg ${p.c}" style="flex-grow:${p.v};${p.st || ''}"></i>`).join('')}</div>` +
+      `<div class="legend">${o.parts.map(p => `<span><i class="sw ${p.c}" style="${p.st || ''}"></i>${p.name} <b>${Math.round(p.v / tot * 100)}%</b></span>`).join('')}</div>`;
+  }
+
+  const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const m4 = ['Sep', 'Oct', 'Nov', 'Dec'], m3 = ['Aug', 'Sep', 'Oct'];
+  const m12 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day0 = new Date(2025, 0, 6);
+  const days = Array.from({ length: 56 }, (_, i) => {
+    const d = new Date(day0); d.setDate(d.getDate() + i);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  });
+  const hours = Array.from({ length: 24 }, (_, i) => (i % 12 || 12) + (i < 12 ? 'am' : 'pm'));
+  const weeks = Array.from({ length: 12 }, (_, i) => 'W' + (i + 1));
+  const MONEY = v => '$' + N(v), PCT = v => v.toFixed(1) + '%', PCT2 = v => v.toFixed(2) + '%';
+  const four = (a, b, c, d) => [
+    { name: 'Paid social', c: 'c1', v: a }, { name: 'Paid search', c: 'c2', v: b },
+    { name: 'Organic search', c: 'c3', v: c }, { name: 'Other', c: 'c0', v: d }];
+  const devices = (m, d, t) => [{ name: 'Mobile', c: 'c1', v: m }, { name: 'Desktop', c: 'c2', v: d }].concat(t ? [{ name: 'Tablet', c: 'c3', v: t }] : []);
+  const msgScans = [914, 994, 1066, 1014, 1104, 1086, 1046, 1064, 1126, 1086, 1144, 1183];
+  const othScans = [466, 426, 444, 446, 446, 514, 444, 466, 494, 494, 466, 467];
+
+  const charts = {
+    // B · Site performance
+    'b-channels': el => cols(el, { title: 'Total site sessions by channel', labels: months, h: 150,
+      series: four([4100, 4600, 3200, 4900, 5300, 5000], [1800, 1900, 1500, 2000, 2100, 2200], [900, 950, 880, 1000, 1050, 1100], [600, 650, 560, 640, 640, 640]) }),
+    'b-share': el => segbar(el, { title: 'Total sessions by channel',
+      parts: [{ name: 'Paid social', c: 'c1', v: 56 }, { name: 'Paid search', c: 'c2', v: 24 }, { name: 'Organic search', c: 'c3', v: 12 }, { name: 'Other', c: 'c0', v: 8 }] }),
+    'b-device': el => segbar(el, { title: 'Total sessions by device', parts: devices(81, 17, 2) }),
+    'b-interest': el => cols(el, { title: 'Interest-segment sessions by channel', labels: m4, h: 110,
+      series: four([62, 71, 58, 80], [40, 45, 42, 52], [18, 20, 17, 24], [6, 8, 7, 9]) }),
+    'b-intent': el => cols(el, { title: 'Intent-segment sessions by channel', labels: m4, h: 110,
+      series: four([30, 26, 24, 38], [22, 20, 19, 25], [10, 9, 8, 12], [3, 4, 3, 5]) }),
+    // C · Goal conversions and key actions
+    'c-int-rate': el => cols(el, { title: 'Key action rate by month (%)', labels: m4, h: 100, fmt: PCT2,
+      series: [{ name: 'Key action rate', c: 'c1', v: [1.0, 1.1, 0.99, 0.84] }] }),
+    'c-int-ch': el => segbar(el, { title: 'Key actions by channel',
+      parts: [{ name: 'Paid social', c: 'c1', v: 38 }, { name: 'Paid search', c: 'c2', v: 51 }, { name: 'Organic search', c: 'c3', v: 7 }, { name: 'Other', c: 'c0', v: 4 }] }),
+    'c-ten-rate': el => cols(el, { title: 'Key action rate by month (%)', labels: m4, h: 100, fmt: PCT2,
+      series: [{ name: 'Key action rate', c: 'c1', v: [0.76, 0.66, 0.69, 0.69] }] }),
+    'c-ten-ch': el => segbar(el, { title: 'Key actions by channel',
+      parts: [{ name: 'Paid social', c: 'c1', v: 41 }, { name: 'Paid search', c: 'c2', v: 48 }, { name: 'Organic search', c: 'c3', v: 8 }, { name: 'Other', c: 'c0', v: 3 }] }),
+    'c-ka-month': el => cols(el, { title: 'Key actions by month', labels: months, h: 130,
+      series: four([275, 333, 369, 396, 428, 365], [213, 259, 287, 308, 332, 284], [73, 89, 98, 106, 114, 98], [49, 59, 66, 70, 76, 65]) }),
+    // D · Facebook groups daily posts
+    'fb-daily': el => line(el, { title: 'Posts by day', labels: days, every: 14, h: 120,
+      series: [
+        { name: 'Member posts', c: 'c1', v: [20, 23, 24, 26, 25, 22, 13, 23, 28, 25, 27, 18, 16, 13, 21, 21, 14, 15, 15, 16, 13, 12, 18, 11, 16, 11, 5, 15, 13, 14, 23, 23, 17, 20, 16, 24, 19, 28, 25, 28, 22, 16, 21, 19, 18, 16, 18, 15, 8, 19, 15, 14, 19, 15, 8, 9] },
+        { name: 'Admin posts', c: 'c2', v: [4, 2, 2, 3, 2, 2, 2, 2, 3, 3, 3, 3, 1, 2, 2, 4, 2, 3, 2, 1, 1, 3, 3, 3, 3, 3, 2, 2, 2, 3, 4, 3, 3, 1, 2, 2, 2, 3, 3, 3, 2, 1, 3, 3, 4, 3, 2, 2, 2, 3, 2, 2, 4, 2, 2, 2] }] }),
+    'fb-weekday': el => cols(el, { title: 'Member posts by weekday', labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], h: 110,
+      series: [{ name: 'Member posts', c: 'c1', v: [153, 157, 157, 167, 147, 124, 103] }] }),
+    // E · Intercept survey
+    'e-daily': el => line(el, { title: 'Survey form submissions by date', labels: days, every: 14, h: 110, area: true,
+      series: [{ name: 'Submissions', c: 'c1', v: [8, 10, 14, 10, 10, 10, 8, 11, 11, 14, 12, 9, 11, 14, 9, 13, 16, 18, 32, 30, 14, 8, 16, 12, 11, 7, 8, 11, 7, 12, 12, 10, 8, 4, 4, 5, 11, 9, 8, 6, 5, 30, 18, 10, 7, 9, 6, 8, 8, 5, 13, 8, 10, 9, 5, 8] }] }),
+    'e-hour': el => line(el, { title: 'Survey form submissions by time of day', labels: hours, every: 6, h: 110, area: true,
+      series: [{ name: 'Submissions', c: 'c1', v: [4, 2, 1, 1, 1, 2, 5, 9, 16, 23, 28, 30, 35, 33, 34, 36, 40, 46, 60, 64, 56, 44, 28, 14] }] }),
+    'e-source': el => hbars(el, { title: 'Submissions by UTM source + medium',
+      rows: [['(direct) / (none)', 186], ['google / organic', 141], ['google / cpc', 98], ['messaging app / referral', 72], ['social / paid', 51], ['email / newsletter', 38], ['(not set)', 26]] }),
+    'e-dev-pop': el => segbar(el, { title: 'Pop-up sessions by device', parts: devices(70, 29, 1) }),
+    'e-dev-sub': el => segbar(el, { title: 'Survey submissions by device', parts: devices(74, 26) }),
+    'e-type-pop': el => hbars(el, { title: 'Pop-ups by page type', rows: [['Other pages', 22290], ['Product range', 3860]] }),
+    'e-type-sub': el => hbars(el, { title: 'Submissions by page type', rows: [['Other pages', 508], ['Product range', 104]] }),
+    'e-type-rate': el => hbars(el, { title: 'Submission rate by page type', fmt: PCT, rows: [['Product range', 2.7], ['Other pages', 2.3]] }),
+    'e-top-pop': el => hbars(el, { title: 'Top pages by pop-ups',
+      rows: [['/latest-promotion', 8420], ['/ (home)', 5860], ['/first-purchase-offer', 2140], ['/range-classic', 1720], ['/products', 1620], ['/checklist', 1450]] }),
+    'e-top-sub': el => hbars(el, { title: 'Top pages by submissions',
+      rows: [['/ (home)', 96], ['/latest-promotion', 92], ['/range-gold', 31], ['/range-classic', 26], ['/range-kids', 22], ['/products', 15]] }),
+    'e-top-rate': el => hbars(el, { title: 'Top pages by submission rate', fmt: PCT,
+      rows: [['/member-update', 12.0], ['/trial-offer', 10.7], ['/preparation-guide', 9.1], ['/range-premium', 8.6], ['/range-kids', 4.7], ['/range-gold', 3.1]] }),
+    // F · CTA performance
+    'f-sessions': el => line(el, { title: 'Sessions over time', labels: days.slice(0, 42), every: 14, h: 110,
+      series: [
+        { name: 'Messaging app', c: 'c1', v: [245, 260, 298, 264, 273, 313, 283, 285, 297, 312, 252, 269, 277, 336, 293, 232, 308, 301, 268, 287, 241, 194, 232, 187, 193, 194, 202, 237, 205, 240, 214, 227, 218, 265, 252, 213, 281, 287, 280, 275, 276, 274] },
+        { name: 'Other browsers', c: 'c2', v: [111, 105, 136, 124, 144, 128, 152, 148, 115, 123, 150, 131, 149, 123, 108, 127, 130, 107, 96, 104, 127, 117, 90, 95, 89, 88, 118, 95, 113, 111, 103, 128, 107, 130, 112, 126, 120, 124, 153, 147, 127, 149] }] }),
+    'f-ctr': el => line(el, { title: 'CTA click-through over time (%)', labels: days.slice(0, 42), every: 14, h: 110, fmt: PCT,
+      series: [
+        { name: 'Messaging app', c: 'c1', v: [10.4, 12.7, 12.9, 12.8, 12.2, 14.5, 14.8, 13.8, 13.8, 12.8, 11.8, 12.9, 13.4, 11.2, 13.4, 10.9, 10.5, 9.4, 12.4, 11.1, 11.3, 10.1, 7.8, 8.8, 9.4, 8.1, 11.3, 9.4, 9.0, 11.7, 9.6, 13.0, 11.7, 12.5, 12.1, 13.0, 12.2, 11.9, 15.0, 12.8, 14.8, 12.6] },
+        { name: 'Other browsers', c: 'c2', v: [2.6, 2.6, 2.5, 2.7, 2.5, 2.8, 2.0, 2.5, 2.8, 2.0, 2.8, 2.7, 2.0, 1.8, 1.8, 1.6, 2.2, 1.4, 0.9, 1.0, 1.8, 2.2, 1.6, 1.7, 1.9, 2.3, 1.8, 2.4, 2.4, 2.6, 2.1, 2.1, 2.3, 3.0, 2.2, 2.4, 2.0, 1.6, 1.4, 2.2, 2.1, 1.5] }] }),
+    'f-cta': el => hbars(el, { title: 'CTA clicks by CTA', rows: [['3-minute quiz', 1046], ['Product report', 251], ['Member club', 56]] }),
+    'f-device': el => segbar(el, { title: 'CTA sessions by device', parts: devices(90, 9, 1) }),
+    'f-product': el => hbars(el, { title: 'CTA sessions by product',
+      rows: [['(not set)', 7320], ['Product A', 2140], ['Product B', 1860], ['Product C', 1410], ['Product D', 990], ['Other products', 2200]] }),
+    // G · Organic search
+    'g-home': el => line(el, { title: 'Home page', labels: m12, every: 11, h: 90, area: true,
+      series: [{ name: 'Clicks', c: 'c1', v: [610, 640, 590, 660, 700, 720, 690, 740, 780, 800, 810, 840] }] }),
+    'g-hubs': el => line(el, { title: 'Hubs', labels: m12, every: 11, h: 90, area: true,
+      series: [{ name: 'Clicks', c: 'c1', v: [1500, 1560, 1480, 1620, 1700, 1760, 1690, 1820, 1900, 1960, 2010, 2040] }] }),
+    'g-content': el => line(el, { title: 'Content hub', labels: m12, every: 11, h: 90, area: true,
+      series: [{ name: 'Clicks', c: 'c1', v: [820, 790, 760, 740, 720, 700, 690, 680, 670, 660, 655, 650] }] }),
+    // H · Global websites
+    'h-channels': el => cols(el, { title: 'Users by channel bucket', labels: m3, h: 130,
+      series: [{ name: 'Paid', c: 'c1', v: [38000, 39600, 41500] }, { name: 'Owned', c: 'c2', v: [21400, 21900, 22800] }, { name: 'Earned', c: 'c3', v: [9500, 9700, 10200] }] }),
+    'h-sticky': el => hbars(el, { title: 'Primary sticky CTA clicks',
+      rows: [['Paid search', 3120], ['Paid social', 2560], ['Organic search', 1890], ['Direct', 1320], ['Referral', 780], ['Email', 440]] }),
+    // I · Pack-scan site
+    'i-scans': el => line(el, { title: 'Weekly scans', labels: weeks, every: 1, h: 110,
+      series: [{ name: 'Messaging app', c: 'c1', v: msgScans }, { name: 'Other browsers', c: 'c2', v: othScans }] }),
+    'i-market': el => hbars(el, { title: 'Scans by market',
+      rows: [['Market A', 5980], ['Market B', 3870], ['Market C', 2940], ['Market D', 2310], ['Market E', 1640], ['Market F', 1020], ['Market G', 640]] }),
+    'i-tier': el => hbars(el, { title: 'Scans by city tier, one market', fmt: v => v + '%',
+      rows: [['Tier 1', 46], ['Tier 2', 31], ['Tier 3', 15], ['Tier 4 and below', 8]] }),
+    'i-errors': el => hbars(el, { title: 'Scan errors by type',
+      rows: [['Code not recognised', 96], ['Already scanned', 58], ['Expired code', 34], ['Other', 22]] }),
+    // J · Search and display spend
+    'j-site': el => hbars(el, { title: 'Spend per site (display)', fmt: MONEY,
+      rows: [['Video site', 31200], ['News site', 24600], ['Social network', 15900], ['Other sites', 10300]] }),
+    'j-channel': el => segbar(el, { title: 'Spend per channel', parts: [{ name: 'Search', c: 'c1', v: 62 }, { name: 'Display', c: 'c2', v: 38 }] }),
+    'j-spend': el => line(el, { title: 'Spend over time', labels: weeks, every: 1, h: 100, area: true, fmt: MONEY,
+      series: [{ name: 'Spend', c: 'c1', v: [15200, 16100, 17400, 16800, 18900, 19600, 17200, 16900, 18800, 21400, 19700, 17800] }] }),
+    // K · Search campaign report
+    'k-clicks': el => line(el, { title: 'Clicks by day', labels: days.slice(0, 30), every: 7, h: 100, area: true,
+      series: [{ name: 'Clicks', c: 'c1', v: [600, 652, 743, 732, 667, 661, 551, 705, 774, 695, 672, 618, 448, 496, 570, 602, 549, 548, 615, 393, 411, 612, 526, 541, 676, 687, 479, 493, 744, 790] }] }),
+    'k-products': el => hbars(el, { title: 'Product ranking by lead forms',
+      rows: [['Product A', 21], ['Product B', 14], ['Product C', 9], ['Product D', 7], ['Product E', 4]] }),
+    'k-tags': el => line(el, { title: '50% page views and brochure downloads', labels: days.slice(0, 30), every: 7, h: 100,
+      series: [
+        { name: '50% page views', c: 'c1', v: [591, 608, 652, 674, 618, 584, 584, 651, 681, 623, 596, 565, 512, 405, 490, 565, 548, 502, 540, 327, 356, 480, 508, 491, 495, 546, 520, 547, 646, 625] },
+        { name: 'Brochure downloads', c: 'c2', v: [95, 116, 109, 117, 102, 85, 101, 123, 124, 115, 108, 109, 89, 72, 97, 87, 97, 76, 91, 75, 52, 91, 94, 102, 99, 94, 79, 96, 121, 104] }] }),
+    'k-keywords': el => hbars(el, { title: 'Top 5 keyword groups by clicks',
+      rows: [['Brand terms', 7120], ['Brand + product', 4380], ['Product category', 3650], ['Competitor terms', 1820], ['Generic finance', 1280]] }),
+    // L · Paid media overview
+    'l-traffic': el => line(el, { title: 'Sessions and page views', labels: months, every: 1, h: 100,
+      series: [{ name: 'Page views', c: 'c1', v: [62700, 65100, 60200, 70000, 75100, 69700] }, { name: 'Sessions', c: 'c2', v: [21800, 22600, 20900, 24300, 26100, 24300] }] }),
+    'l-clicks': el => cols(el, { title: 'Clicks by month', labels: months, h: 100,
+      series: [{ name: 'Clicks', c: 'c1', v: [22900, 23800, 22100, 25300, 27900, 25526] }] }),
+    'l-platform': el => hbars(el, { title: 'Cost per platform', fmt: MONEY,
+      rows: [['Google Search', 112750], ['Google Display', 31540], ['Facebook', 21490], ['YouTube', 21430]] }),
+    'l-revenue': el => cols(el, { title: 'Revenue by month', labels: months, h: 100, fmt: MONEY,
+      series: [{ name: 'Revenue', c: 'c1', v: [21300, 23100, 22400, 26900, 31200, 28170] }] }),
+    'l-cart': el => line(el, { title: 'Adds to cart and purchases', labels: months, every: 1, h: 100,
+      series: [{ name: 'Adds to cart', c: 'c1', v: [128, 141, 139, 167, 205, 176] }, { name: 'Purchases', c: 'c2', v: [62, 71, 66, 84, 102, 89] }] }),
+    // GA4 section
+    'ga-answers': el => hbars(el, { title: 'Survey answers: "How useful was this page?"',
+      rows: [['Very useful', 412], ['Somewhat useful', 286], ['Not sure', 158], ['Not useful', 64]] }),
+    // Sample deck
+    'deck-themes': el => hbars(el, { title: 'Themes in posts and comments',
+      rows: [['Community support', 2140], ['Lifestyle', 1860], ['Diagnosis and tests', 1420], ['Treatment questions', 1050], ['Symptoms', 880], ['Other', 1218]] }),
+    'deck-behaviours': el => hbars(el, { title: 'Behaviours, share of all', fmt: v => v + '%',
+      rows: [['Asking for advice', 34], ['Sharing an experience', 27], ['Offering support', 18], ['Sharing resources', 11], ['Venting', 6], ['Other', 4]] }),
+    'deck-ready': el => segbar(el, { title: 'Treatment readiness of active members',
+      parts: [
+        { name: 'Just joined', c: 'c0', v: 22 },
+        { name: 'Learning', c: 'c1', v: 38, st: '--c: color-mix(in srgb, var(--s1) 55%, var(--surface))' },
+        { name: 'Considering treatment', c: 'c1', v: 24, st: '--c: color-mix(in srgb, var(--s1) 78%, var(--surface))' },
+        { name: 'Ready to ask a doctor', c: 'c1', v: 16 }] })
+  };
+  document.querySelectorAll('[data-chart]').forEach(el => charts[el.dataset.chart](el));
+
+})();
+</script>
+</body>
+</html>
