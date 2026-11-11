@@ -83,7 +83,7 @@ p { margin: 0; }
 header { display: grid; gap: 20px; }
 header h1 { font-size: clamp(44px, 8vw, 72px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
 .role { font-family: var(--display); font-weight: 500; font-size: clamp(20px, 3vw, 26px); line-height: 1.25; max-width: 52ch; text-wrap: balance; }
-.lede { max-width: 64ch; }
+.lede { max-width: none; }
 .lede + .lede { color: var(--muted); }
 .links { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 .links a { color: var(--accent); font-weight: 600; text-decoration: none; border-bottom: 1px solid currentColor; }
@@ -117,8 +117,13 @@ header > * { min-width: 0; }
 .taskmap tbody tr:last-child > * { border-bottom: 0; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 section { display: grid; gap: 24px; }
+/* On screen, each section gets a dividing line and room above it */
+@media screen {
+  .page > section { border-top: 1px solid var(--rule); padding-top: 44px; }
+  section > h2 + .intro { margin-top: -8px; }
+}
 section > h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
-.intro { max-width: 64ch; color: var(--muted); }
+.intro { max-width: none; color: var(--muted); }
 
 /* Pipeline: four stages joined by arrows; stacked on phones, side by side from tablet width */
 .pipeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 30px; }
@@ -394,7 +399,8 @@ footer { border-top: 1px solid var(--rule); padding-top: 20px; font-size: 14px; 
 
 @media (max-width: 640px) {
   body { font-size: 16px; }
-  .page { padding-block: 32px 48px; gap: 48px; }
+  .page { padding-block: 32px 48px; gap: 44px; }
+  .page > section { padding-top: 32px; }
   .case, .snippet { padding: 18px; }
   .taskmap { min-width: 600px; }
   .taskmap tbody th { min-width: 0; width: 170px; }
@@ -412,7 +418,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 20px; font-size: 14px; 
 /* Wide screens (landscape laptops and monitors): smaller type, use the full width, put sections side by side */
 @media screen and (min-width: 1100px) {
   body { font-size: 14px; line-height: 1.5; }
-  .page { max-width: 1560px; gap: 48px; padding-block: 36px 56px;
+  .page { max-width: 1560px; gap: 56px; padding-block: 36px 56px;
     padding-left: max(40px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px)); }
   .label { font-size: 10.5px; }
 
@@ -420,9 +426,6 @@ footer { border-top: 1px solid var(--rule); padding-top: 20px; font-size: 14px; 
   header > * { grid-column: 1 / -1; }
   header h1 { font-size: 46px; }
   .role { font-size: 18px; max-width: none; }
-  header > .lede { grid-column: 1; grid-row: 5; max-width: none; }
-  header > .lede ~ .lede { grid-column: 2; grid-row: 5; }
-  header > .timeline-wrap { grid-row: 6; }
   .taskmap { min-width: 0; font-size: 13px; }
   .taskmap tbody th { width: 30%; }
   .taskmap tbody th b { font-size: 13.5px; }
@@ -432,9 +435,10 @@ footer { border-top: 1px solid var(--rule); padding-top: 20px; font-size: 14px; 
   .timeline .org { font-size: 12.5px; }
   .timeline li > span:last-child { font-size: 12px; }
 
-  section { gap: 18px; }
+  section { gap: 20px; }
+  .page > section { padding-top: 48px; }
   section > h2 { font-size: 20px; }
-  .intro { font-size: 12.5px; max-width: 120ch; }
+  .intro { font-size: 12.5px; max-width: none; }
 
   .stage { padding: 14px 16px; gap: 8px; }
   .stage h3 { font-size: 14.5px; }
